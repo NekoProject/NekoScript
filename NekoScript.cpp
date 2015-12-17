@@ -2,10 +2,11 @@
 #include <duktape\duktape.h>
 #include "NekoScript.h"
 #include "Helper.h"
+#include "JSEventEmitter.h"
 #include "NKWinTaskDialog.h"
 
 static int eval_raw(duk_context *ctx) {
-	duk_compile(ctx, 0);
+	duk_compile(ctx, 0);/*
 	duk_dump_function(ctx);
 	void *ptr;
 	duk_size_t sz;
@@ -16,7 +17,7 @@ static int eval_raw(duk_context *ctx) {
 	fopen_s(&test, "d:\\a.bin", "wb");
 	fwrite(ptr, sz, 1, test);
 	fclose(test);
-	duk_load_function(ctx);
+	duk_load_function(ctx);*/
 	duk_call(ctx, 0);
 	return 1;
 }
@@ -42,6 +43,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	ctx = duk_create_heap_default();
 
+	JSEventEmitter::setup(ctx);
 	NKWinTaskDialog::setup(ctx);
 	duk_put_global_string(ctx, "NKWinTaskDialog");
 

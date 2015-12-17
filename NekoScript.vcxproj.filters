@@ -19,6 +19,9 @@
     <Filter Include="Vendors\Duktape">
       <UniqueIdentifier>{deac1939-7408-4a0f-8da0-3262069a7eb2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="JS Libraries">
+      <UniqueIdentifier>{6416d91d-df45-4d76-b3a6-6d9ec1dd350e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -48,6 +51,9 @@
     <ClInclude Include="JSClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="JSEventEmitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -68,6 +74,9 @@
     <ClCompile Include="JSClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="JSEventEmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NekoScript.rc">
@@ -81,5 +90,10 @@
     <Image Include="NekoScript.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lib\init_EventEmitter.js">
+      <Filter>JS Libraries</Filter>
+    </None>
   </ItemGroup>
 </Project>

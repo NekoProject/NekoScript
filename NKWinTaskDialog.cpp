@@ -1,8 +1,10 @@
 #include "stdafx.h"
 #include "Helper.h"
+#include "JSEventEmitter.h"
 #include "NKWinTaskDialog.h"
 
 NKWinTaskDialog::NKWinTaskDialog(duk_context *ctx, void *ptr) : JSClass(ctx, ptr) {
+	_preventClose = false;
 }
 
 NKWinTaskDialog::~NKWinTaskDialog() {
@@ -32,12 +34,25 @@ static inline TASKDIALOG_COMMON_BUTTON_FLAGS ParseCommonButton(const std::string
 	return 0;
 }
 
+static inline std::string ParseCommonButtonID(int button) {
+	if (button == IDOK) return "ok";
+	if (button == IDYES) return "yes";
+	if (button == IDNO) return "no";
+	if (button == IDCANCEL) return "cancel";
+	if (button == IDRETRY) return "retry";
+	if (button == IDCLOSE) return "close";
+	return "";
+}
+
 duk_ret_t NKWinTaskDialog::Show() {
 	HRESULT hr;
 	TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
 	std::wstring title, mainInstruction, content, expandedInformation, footer, verificationText, expandedControlText, collapsedControlText;
 	std::string icon;
 	bool isNull;
+
+	tdc.pfCallback = &staticCallback;
+	tdc.lpCallbackData = reinterpret_cast<LONG_PTR>(this);
 
 	if (duk_is_object(ctx, 0)) 
 		duk_dup(ctx, 0);
@@ -124,7 +139,6 @@ duk_ret_t NKWinTaskDialog::Show() {
 	}
 	duk_pop(ctx);
 
-
 	duk_get_prop_string(ctx, -1, "commonButtons");
 	if (duk_is_array(ctx, -1)) {
 		int length = duk_get_length(ctx, -1);
@@ -146,9 +160,130 @@ duk_ret_t NKWinTaskDialog::Show() {
 		delete[] radios;
 		delete[] radioStrings;
 	}
+
+	return 0;
+}
+
+duk_ret_t NKWinTaskDialog::PreventClose()
+{
+	_preventClose = true;
 	return 0;
 }
 
 void NKWinTaskDialog::setupPrototype(duk_context *ctx) {
+	JSEventEmitter::putOnStack(ctx);
+	duk_new(ctx, 0);
+	
 	registerMethod<&NKWinTaskDialog::Show>(ctx, "show", 1);
+	registerMethod<&NKWinTaskDialog::PreventClose>(ctx, "preventClose", 0);
+
+	duk_put_prop_string(ctx, -2, "prototype");
+}
+
+HRESULT __stdcall NKWinTaskDialog::staticCallback(HWND handle, UINT notification, WPARAM wParam, LPARAM lParam, LONG_PTR data)
+{
+	NKWinTaskDialog* self = reinterpret_cast<NKWinTaskDialog*>(data);
+	_ASSERTE(self);
+
+	return self->callback(handle, notification, wParam, lParam);
+}
+
+HRESULT NKWinTaskDialog::callback(HWND handle, UINT notification, WPARAM wParam, LPARAM lParam)
+{
+	HRESULT result = S_OK;
+	JSEventEmitter::putEmitOnStack(ctx);
+	duk_push_this(ctx);
+	
+	switch (notification)
+	{
+	case TDN_CREATED:
+		duk_push_string(ctx, "created");
+		duk_call_method(ctx, 1);
+		duk_pop(ctx);
+		break;
+
+	case TDN_NAVIGATED:
+		duk_push_string(ctx, "navigated");
+		duk_call_method(ctx, 1);
+		duk_pop(ctx);
+		break;
+
+	case TDN_BUTTON_CLICKED:
+		{
+			_preventClose = false;
+			duk_push_string(ctx, "buttonClicked");
+			std::string commonButtons = ParseCommonButtonID(wParam);
+			if (commonButtons.empty()) {
+				duk_push_int(ctx, wParam - 1000);
+			}
+			else {
+				duk_push_string(ctx, commonButtons.c_str());
+			}
+			duk_call_method(ctx, 2);
+			duk_pop(ctx);
+
+			if (_preventClose) {
+				_preventClose = false;
+				result = S_FALSE;
+			}
+		}
+		break;
+
+	case TDN_HYPERLINK_CLICKED:
+		{
+			std::wstring str = std::wstring(reinterpret_cast<LPCWSTR>(lParam));
+			duk_push_string(ctx, "hyperlinkClicked");
+			duk_push_string(ctx, Utf16ToUtf8(str).c_str());
+			duk_call_method(ctx, 2);
+			duk_pop(ctx);
+		}
+		break;
+
+	case TDN_TIMER:
+		duk_push_string(ctx, "timer");
+		duk_push_uint(ctx, wParam);
+		duk_call_method(ctx, 2);
+		duk_pop(ctx);
+		break;
+
+	case TDN_DESTROYED:
+		duk_push_string(ctx, "destroyed");
+		duk_call_method(ctx, 1);
+		duk_pop(ctx);
+		break;
+
+	case TDN_RADIO_BUTTON_CLICKED:
+		duk_push_string(ctx, "radioButtonClicked");
+		duk_push_int(ctx, wParam - 2000);
+		duk_call_method(ctx, 2);
+		duk_pop(ctx);
+		break;
+
+	case TDN_DIALOG_CONSTRUCTED:
+		duk_push_string(ctx, "dialogConstructed");
+		duk_call_method(ctx, 1);
+		duk_pop(ctx);
+		break;
+
+	case TDN_VERIFICATION_CLICKED:
+		duk_push_string(ctx, "verificationClicked");
+		duk_push_boolean(ctx, !!wParam);
+		duk_call_method(ctx, 2);
+		duk_pop(ctx);
+		break;
+
+	case TDN_HELP:
+		duk_push_string(ctx, "help");
+		duk_call_method(ctx, 1);
+		duk_pop(ctx);
+		break;
+
+	case TDN_EXPANDO_BUTTON_CLICKED:
+		duk_push_string(ctx, "expandoButtonClicked");
+		duk_push_boolean(ctx, !!wParam);
+		duk_call_method(ctx, 2);
+		duk_pop(ctx);
+		break;
+	}
+	return result;
 }
