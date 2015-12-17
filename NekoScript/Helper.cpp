@@ -37,6 +37,14 @@ std::string ReadWholeFileAsString(const std::wstring &fname)
 	return buffer;
 }
 
+bool FileExists(LPCTSTR szPath)
+{
+	DWORD dwAttrib = GetFileAttributes(szPath);
+
+	return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+		!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
 std::string JSGetPropString(duk_context *ctx, const std::string& name)
 {
 	std::string result;
@@ -89,6 +97,20 @@ bool JSGetPropBoolean(duk_context *ctx, duk_uarridx_t arr_index)
 	bool result;
 	duk_get_prop_index(ctx, -1, arr_index);
 	result = !!duk_to_boolean(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
+
+static int JSGetErrorStackInternal(duk_context *ctx) {
+	duk_get_prop_string(ctx, -1, "stack");
+	return 1;
+}
+
+std::string JSGetErrorStack(duk_context *ctx) {
+	duk_dup_top(ctx);
+	duk_safe_call(ctx, JSGetErrorStackInternal, 1, 1);
+	duk_safe_to_string(ctx, -1);
+	std::string result = duk_get_string(ctx, -1);
 	duk_pop(ctx);
 	return result;
 }

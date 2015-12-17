@@ -2,29 +2,85 @@
 #include <duktape\duktape.h>
 #include "NekoScript.h"
 #include "Helper.h"
+#include "JSFileSystem.h"
 #include "JSEventEmitter.h"
 #include "NKWinTaskDialog.h"
+#include <lzma\CPP\Common\CommandLineParser.h>
 
-static int eval_raw(duk_context *ctx) {
-	duk_compile(ctx, 0);/*
-	duk_dump_function(ctx);
-	void *ptr;
-	duk_size_t sz;
+duk_context *CreateDuktapeContext() {
+	duk_context *ctx = duk_create_heap_default();
 
-	ptr = duk_require_buffer(ctx, -1, &sz);
-	printf("buf=%p, size=%lu\n", ptr, (unsigned long)sz);
-	FILE* test;
-	fopen_s(&test, "d:\\a.bin", "wb");
-	fwrite(ptr, sz, 1, test);
-	fclose(test);
-	duk_load_function(ctx);*/
-	duk_call(ctx, 0);
-	return 1;
+	JSFileSystem::setup(ctx);
+
+#ifndef NEKO_MINIMAL
+	JSEventEmitter::setup(ctx);
+
+	NKWinTaskDialog::setup(ctx);
+	duk_put_global_string(ctx, "NKWinTaskDialog");
+#endif
+
+	return ctx;
 }
 
-static int tostring_raw(duk_context *ctx) {
-	duk_to_string(ctx, -1);
-	return 1;
+void ShowConsole() {
+	AllocConsole();
+	FILE* useless;
+	freopen_s(&useless, "CONOUT$", "w", stdout);
+	freopen_s(&useless, "CONOUT$", "w", stderr);
+	freopen_s(&useless, "CONIN$", "r", stdin);
+}
+
+bool isConsoleMode = false;
+bool IsConsoleMode() {
+	return isConsoleMode;
+}
+
+void Fail(std::wstring title, std::wstring content) {
+	if (IsConsoleMode()) {
+		std::wcerr << title << ": " << content;
+	} else {
+		TaskDialog(NULL, NULL, L"NekoScript", title.c_str(), content.c_str(), TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
+	}
+}
+
+int AppMain() {
+	int retCode = 0;
+	std::wstring fileName;
+
+	UStringVector commandStrings;
+	NCommandLineParser::SplitCommandLine(GetCommandLineW(), commandStrings);
+	if (commandStrings.Size() == 2) {
+		fileName = commandStrings[1];
+	}
+
+	if (fileName.empty()) {
+		fileName = L"D:\\git\\NekoScript\\examples\\test.js";
+	}
+
+	if (FileExists(fileName.c_str())) {
+		duk_context *ctx = CreateDuktapeContext();
+		duk_push_string(ctx, Utf16ToUtf8(fileName).c_str());
+		if (duk_pcompile_string_filename(ctx, 0, ReadWholeFileAsString(fileName).c_str()) != DUK_EXEC_SUCCESS) {
+			Fail(L"Compile Failed", Utf8ToUtf16(std::string(duk_safe_to_string(ctx, -1))));
+			retCode = 1;
+			duk_pop(ctx);
+		} else {
+			duk_int_t rc = duk_pcall(ctx, 0);
+			if (rc != DUK_EXEC_SUCCESS) {
+				Fail(L"Uncaught Error", Utf8ToUtf16(JSGetErrorStack(ctx)));
+				retCode = 1;
+				duk_pop(ctx);
+			} else {
+				duk_pop(ctx);
+			}
+		}
+
+		duk_destroy_heap(ctx);
+	} else {
+		Fail(L"Module Not Found", fileName + L" cannot be found.");
+	}
+
+	return retCode;
 }
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
@@ -32,37 +88,12 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPTSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-	int x;
-	duk_context *ctx;
-	const char *res;
-	AllocConsole();
-	FILE* useless;
-	freopen_s(&useless, "CONOUT$", "w", stdout);
-	freopen_s(&useless, "CONOUT$", "w", stderr);
-	freopen_s(&useless, "CONIN$", "r", stdin);
+	ShowConsole();
+	isConsoleMode = false;
+	return AppMain();
+}
 
-	ctx = duk_create_heap_default();
-
-	JSEventEmitter::setup(ctx);
-	NKWinTaskDialog::setup(ctx);
-	duk_put_global_string(ctx, "NKWinTaskDialog");
-
-	duk_push_string(ctx, ReadWholeFileAsString(L"D:\\git\\NekoScript\\examples\\test.js").c_str());
-	duk_push_string(ctx, "test.js");
-	duk_safe_call(ctx, eval_raw, 1 /*nargs*/, 1 /*nrets*/);
-	duk_safe_call(ctx, tostring_raw, 1 /*nargs*/, 1 /*nrets*/);
-	res = duk_get_string(ctx, -1);
-
-	TaskDialog(NULL, hInstance,
-		L"NekoScript",
-		L"Result",
-		Utf8ToUtf16(std::string(res)).c_str(),
-		TDCBF_OK_BUTTON,
-		TD_INFORMATION_ICON,
-		&x);
-
-	duk_pop(ctx);
-	duk_destroy_heap(ctx);
-
-	return 0;
+int main(int argc, char** argv) {
+	isConsoleMode = true;
+	return AppMain();
 }

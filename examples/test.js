@@ -1,4 +1,4 @@
-try {
+function main2() {
     var dialog = new NKWinTaskDialog();
     dialog.on("created", function (x) { alert("created"); alert.apply(this, arguments) });
     dialog.on("navigated", function (x) { alert("navigated"); alert.apply(this, arguments) });
@@ -38,9 +38,30 @@ try {
         ],
         commonButtons: ["retry", "close"]
     });
-} catch (e) {
-    print(e);
-    print(e.stack);
 }
 
-"hello, " + (1900 + new Date().getYear())
+function msgBox(content) {
+    var dialog = new NKWinTaskDialog();
+    dialog.show({
+        icon: "info",
+        content: content,
+        commonButtons: ["close"],
+        allowDialogCancellation: true
+    });
+}
+
+function main() {
+    var raw = fs.readFileSync("D:/NekoIM/更新履历.txt");
+    var code, c;
+    code = "extern const unsigned char _RMMVModEmbeddedResource[" + String(raw.length) + "] = {";
+    for (var i = 0; i < raw.length; i++) {
+        if (i % 16 == 0) code += "\n";
+        c = "   " + String(raw[i])
+        code += c.substring(c.length - 3) + ", "
+    }
+    code += "\n};"
+
+    fs.writeFileSync("D:/NekoIM/更新履历.txt.233", code);
+}
+
+main();

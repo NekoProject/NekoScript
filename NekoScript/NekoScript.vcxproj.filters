@@ -22,6 +22,9 @@
     <Filter Include="JS Libraries">
       <UniqueIdentifier>{6416d91d-df45-4d76-b3a6-6d9ec1dd350e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Vendors\LZMA">
+      <UniqueIdentifier>{917b1389-82f0-4a2e-a849-650f9f81341a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -54,6 +57,9 @@
     <ClInclude Include="JSEventEmitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="JSFileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -75,6 +81,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="JSEventEmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\lzma\CPP\Common\CommandLineParser.cpp">
+      <Filter>Vendors\LZMA</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\lzma\CPP\Common\MyString.cpp">
+      <Filter>Vendors\LZMA</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\lzma\CPP\Common\MyVector.cpp">
+      <Filter>Vendors\LZMA</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\lzma\CPP\Common\StringConvert.cpp">
+      <Filter>Vendors\LZMA</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\lzma\CPP\Common\MyWindows.cpp">
+      <Filter>Vendors\LZMA</Filter>
+    </ClCompile>
+    <ClCompile Include="JSFileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
