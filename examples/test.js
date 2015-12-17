@@ -5,7 +5,7 @@
  * @preserve
  */
 
-; (function () {
+;(function () {
     'use strict';
 
     /**
@@ -18,8 +18,6 @@
 
     // Shortcuts to improve speed and size
     var proto = EventEmitter.prototype;
-    var exports = this;
-    var originalGlobalValue = exports.EventEmitter;
 
     /**
      * Finds the index of the listener for the event in its storage array.
@@ -449,35 +447,38 @@
         return this._events || (this._events = {});
     };
 
-    /**
-     * Reverts the global {@link EventEmitter} to its previous value and returns a reference to this version.
-     *
-     * @return {Function} Non conflicting EventEmitter class.
-     */
-    EventEmitter.noConflict = function noConflict() {
-        exports.EventEmitter = originalGlobalValue;
-        return EventEmitter;
-    };
-
-    // Expose the class either via AMD, CommonJS or the global object
-    if (typeof define === 'function' && define.amd) {
-        define(function () {
-            return EventEmitter;
-        });
-    }
-    else if (typeof module === 'object' && module.exports) {
-        module.exports = EventEmitter;
-    }
-    else {
-        exports.EventEmitter = EventEmitter;
-    }
-}.call(this));
+    return EventEmitter;
+})();
 
 try {
     var dialog = new NKWinTaskDialog();
-    dialog.title = "囧好你叔";
-    dialog.mainInstruction = "测试";
-    dialog.show();
+    dialog.show({
+        title: "囧好你叔",
+        mainInstruction: "测试",
+        icon: "warning",
+        footer: "hahaha",
+        footerIcon: "shield",
+        content: "<a href=\"hello\">a</a>bc",
+        enableHyperlinks: true,
+        showProgressBar: true,
+        expandFooterArea: true,
+        useCommandLinks: true,
+        verificationText: "不要再显示这条三三",
+        expandedInformation: "这里是三三 ><",
+        expandedControlText: "三三快滚",
+        collapsedControlText: "三三快来",
+        buttons: [
+            "prpr Misaka Mikoto",
+            "prpr Misaka 10952",
+            "prpr Misaka 20001",
+        ],
+        radioButtons: [
+            "prpr",
+            "hshs",
+            "????",
+        ],
+        commonButtons: ["retry", "close"]
+    });
 } catch (e) {
     print(e);
     print(e.stack);

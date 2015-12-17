@@ -16,11 +16,12 @@ public:
 
 protected:
 	duk_context *ctx;
-	JSClass(duk_context *_ctx) : ctx(_ctx) {}
+	void *ptr;
+	JSClass(duk_context *_ctx, void *_ptr) : ctx(_ctx), ptr(_ptr) {}
 
 	template<PFunc func>
-	static void registerMethod(duk_context *ctx, char* name) {
-		duk_push_c_function(ctx, instanceMethodWrapper<func>, 0);
+	static void registerMethod(duk_context *ctx, char* name, int nargs = 0) {
+		duk_push_c_function(ctx, instanceMethodWrapper<func>, nargs);
 		duk_put_prop_string(ctx, -2, name);
 	}
 
@@ -29,8 +30,8 @@ protected:
 			return DUK_RET_TYPE_ERROR;
 		}
 
-		T* self = new T(ctx);
 		duk_push_this(ctx);
+		T* self = new T(ctx, duk_get_heapptr(ctx, -1));
 		duk_push_c_function(ctx, finalizer, 1);
 		duk_set_finalizer(ctx, -2);
 		duk_push_pointer(ctx, reinterpret_cast<void*>(self));
@@ -57,26 +58,5 @@ protected:
 		duk_pop_2(ctx);
 
 		return (self->*func)();
-	}
-
-	std::string getIvarString(const std::string& name) const
-	{
-		std::string result;
-		duk_push_this(ctx);
-		duk_get_prop_string(ctx, -1, name.c_str());
-		result = duk_to_string(ctx, -1);
-		duk_pop_2(ctx);
-		return result;
-	}
-
-	std::string getIvarString(const std::string& name, bool* isNull) const
-	{
-		std::string result;
-		duk_push_this(ctx);
-		duk_get_prop_string(ctx, -1, name.c_str());
-		*isNull = !!duk_is_null_or_undefined(ctx, -1);
-		result = duk_to_string(ctx, -1);
-		duk_pop_2(ctx);
-		return result;
 	}
 };

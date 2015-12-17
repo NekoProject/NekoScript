@@ -8,10 +8,11 @@ class NKWinTaskDialog
 	: public JSClass<NKWinTaskDialog>
 {
 public:
-	NKWinTaskDialog(duk_context *ctx);
+	NKWinTaskDialog(duk_context *ctx, void *ptr);
 	~NKWinTaskDialog();
 
 	duk_ret_t Show();
+	void CreateConfig(TASKDIALOGCONFIG* tdc);
 
 	static void setupPrototype(duk_context *ctx);
 };

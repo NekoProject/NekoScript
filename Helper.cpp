@@ -36,3 +36,59 @@ std::string ReadWholeFileAsString(const std::wstring &fname)
 
 	return buffer;
 }
+
+std::string JSGetPropString(duk_context *ctx, const std::string& name)
+{
+	std::string result;
+	duk_get_prop_string(ctx, -1, name.c_str());
+	result = duk_to_string(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
+
+std::string JSGetPropString(duk_context *ctx, duk_uarridx_t arr_index)
+{
+	std::string result;
+	duk_get_prop_index(ctx, -1, arr_index);
+	result = duk_to_string(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
+
+std::string JSGetPropString(duk_context *ctx, const std::string& name, bool* isNull)
+{
+	std::string result;
+	duk_get_prop_string(ctx, -1, name.c_str());
+	*isNull = !!duk_is_null_or_undefined(ctx, -1);
+	result = duk_to_string(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
+
+std::string JSGetPropString(duk_context *ctx, duk_uarridx_t arr_index, bool* isNull)
+{
+	std::string result;
+	duk_get_prop_index(ctx, -1, arr_index);
+	*isNull = !!duk_is_null_or_undefined(ctx, -1);
+	result = duk_to_string(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
+
+bool JSGetPropBoolean(duk_context *ctx, const std::string& name)
+{
+	bool result;
+	duk_get_prop_string(ctx, -1, name.c_str());
+	result = !!duk_to_boolean(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
+
+bool JSGetPropBoolean(duk_context *ctx, duk_uarridx_t arr_index)
+{
+	bool result;
+	duk_get_prop_index(ctx, -1, arr_index);
+	result = !!duk_to_boolean(ctx, -1);
+	duk_pop(ctx);
+	return result;
+}
