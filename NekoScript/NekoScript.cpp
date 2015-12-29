@@ -3,6 +3,7 @@
 #include "NekoScript.h"
 #include "Helper.h"
 #include "JSProcess.h"
+#include "JSEngineExtra.h"
 #include "JSFileSystem.h"
 #include "JSEventEmitter.h"
 #include "NKWinTaskDialog.h"
@@ -11,6 +12,7 @@
 duk_context *CreateDuktapeContext() {
 	duk_context *ctx = duk_create_heap_default();
 
+	JSEngineExtra::setup(ctx);
 	JSProcess::setup(ctx);
 	JSFileSystem::setup(ctx);
 
@@ -64,7 +66,7 @@ int AppMain() {
 
 	JSProcess::_execPath = commandStrings[0];
 	JSProcess::_scriptPath = fileName;
-	for (int i = scriptArgvOffset; i < commandStrings.Size(); i++) {
+	for (unsigned int i = scriptArgvOffset; i < commandStrings.Size(); i++) {
 		JSProcess::_scriptArgv.push_back(std::wstring(commandStrings[i]));
 	}
 

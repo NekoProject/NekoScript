@@ -1,5 +1,6 @@
 #include "JSEventEmitter.h"
 #include "Helper.h"
+#include "Resource.h"
 
 void JSEventEmitter::setup(duk_context *ctx)
 {
@@ -11,7 +12,7 @@ void JSEventEmitter::setup(duk_context *ctx)
 	}
 
 	duk_pop(ctx);
-	duk_push_string(ctx, ReadWholeFileAsString(L"D:\\git\\NekoScript\\NekoScript\\lib\\init_EventEmitter.js").c_str());
+	duk_push_string(ctx, NekoResGet(NEKORES_INIT_EVENT_EMITTER));
 	duk_push_string(ctx, "neko://lib/init_EventEmitter.js");
 	duk_compile(ctx, NULL);
 	duk_call(ctx, 0);

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="DebugConsole|Win32">
@@ -185,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="Helper.h" />
     <ClInclude Include="JSClass.h" />
+    <ClInclude Include="JSEngineExtra.h" />
     <ClInclude Include="JSEventEmitter.h" />
     <ClInclude Include="JSProcess.h" />
     <ClInclude Include="NekoScript.h" />
@@ -199,11 +200,13 @@
   <ItemGroup>
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="JSClass.cpp" />
+    <ClCompile Include="JSEngineExtra.cpp" />
     <ClCompile Include="JSEventEmitter.cpp" />
     <ClCompile Include="JSProcess.cpp" />
     <ClCompile Include="NekoScript.cpp" />
     <ClCompile Include="JSFileSystem.cpp" />
     <ClCompile Include="NKWinTaskDialog.cpp" />
+    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugConsole|Win32'">Create</PrecompiledHeader>
@@ -227,7 +230,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\init_EventEmitter.js" />
-    <None Include="prebuild.js" />
+    <CustomBuild Include="GenerateResources.neko.js" Condition="'$(Configuration)'!='ReleaseConsoleMinimal'">
+      <Command>"$(SolutionDir)ReleaseConsoleMinimal\NekoScript.exe" "$(ProjectDir)GenerateResources.neko.js" "$(ProjectDir)"</Command>
+      <Message>Generating embedded resources</Message>
+      <Outputs>$(ProjectDir)Resource.generated.cpp;$(ProjectDir)Resource.generated.h</Outputs>
+      <Inputs>$(ProjectDir)GenerateResources.neko.js;$(ProjectDir)lib\*</Inputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

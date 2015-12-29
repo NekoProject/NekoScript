@@ -231,3 +231,5 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 
+/NekoScript/Resource.generated.cpp
+/NekoScript/Resource.generated.h
