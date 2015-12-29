@@ -1,13 +1,18 @@
 #include "JSProcess.h"
 #include "Helper.h"
 
-static void setupProperties(duk_context *ctx) {
+std::wstring JSProcess::_scriptPath;
+std::vector<std::wstring> JSProcess::_scriptArgv;
+std::wstring JSProcess::_execPath;
+std::vector<std::wstring> JSProcess::_execArgv;
+
+void JSProcess::setupProperties(duk_context *ctx) {
 	duk_push_string(ctx, "win32");
 	duk_put_prop_string(ctx, -2, "platform");
 
 	// env
-	duk_push_object(ctx);
 	{
+		duk_push_object(ctx);
 		wchar_t *env = GetEnvironmentStrings();
 		wchar_t *p = env;
 		while (*p) {
@@ -29,8 +34,51 @@ static void setupProperties(duk_context *ctx) {
 			p += length + 1;
 		}
 		FreeEnvironmentStrings(env);
+		duk_put_prop_string(ctx, -2, "env");
 	}
-	duk_put_prop_string(ctx, -2, "env");
+
+	// argv
+	{
+		duk_push_array(ctx);
+		int i = 0;
+		duk_push_string(ctx, Utf16ToUtf8(_execPath).c_str());
+		duk_put_prop_index(ctx, -2, i++);
+		duk_push_string(ctx, Utf16ToUtf8(_scriptPath).c_str());
+		duk_put_prop_index(ctx, -2, i++);
+		for (const auto& value: _scriptArgv) {
+			duk_push_string(ctx, Utf16ToUtf8(value).c_str());
+			duk_put_prop_index(ctx, -2, i++);
+		}
+		duk_put_prop_string(ctx, -2, "argv");
+	}
+
+	// scriptArgv
+	{
+		duk_push_array(ctx);
+		int i = 0;
+		for (const auto& value : _scriptArgv) {
+			duk_push_string(ctx, Utf16ToUtf8(value).c_str());
+			duk_put_prop_index(ctx, -2, i++);
+		}
+		duk_put_prop_string(ctx, -2, "scriptArgv");
+	}
+
+	// execArgv
+	{
+		duk_push_array(ctx);
+		int i = 0;
+		for (const auto& value : _execArgv) {
+			duk_push_string(ctx, Utf16ToUtf8(value).c_str());
+			duk_put_prop_index(ctx, -2, i++);
+		}
+		duk_put_prop_string(ctx, -2, "execArgv");
+	}
+
+	duk_push_string(ctx, Utf16ToUtf8(_scriptPath).c_str());
+	duk_put_prop_string(ctx, -2, "scriptPath");
+
+	duk_push_string(ctx, Utf16ToUtf8(_execPath).c_str());
+	duk_put_prop_string(ctx, -2, "execPath");
 }
 
 void JSProcess::setup(duk_context *ctx) {

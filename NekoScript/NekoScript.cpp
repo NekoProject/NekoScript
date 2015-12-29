@@ -51,12 +51,21 @@ int AppMain() {
 
 	UStringVector commandStrings;
 	NCommandLineParser::SplitCommandLine(GetCommandLineW(), commandStrings);
-	if (commandStrings.Size() == 2) {
-		fileName = commandStrings[1];
-	}
+	_ASSERTE(commandStrings.Size() >= 1);
 
+	int scriptArgvOffset = 1;
+	if (commandStrings.Size() >= 2) {
+		fileName = commandStrings[1];
+		scriptArgvOffset = 2;
+	}
 	if (fileName.empty()) {
 		fileName = L"D:\\git\\NekoScript\\examples\\test.js";
+	}
+
+	JSProcess::_execPath = commandStrings[0];
+	JSProcess::_scriptPath = fileName;
+	for (int i = scriptArgvOffset; i < commandStrings.Size(); i++) {
+		JSProcess::_scriptArgv.push_back(std::wstring(commandStrings[i]));
 	}
 
 	if (FileExists(fileName.c_str())) {
