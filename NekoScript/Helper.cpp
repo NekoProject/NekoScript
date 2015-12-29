@@ -114,3 +114,60 @@ std::string JSGetErrorStack(duk_context *ctx) {
 	duk_pop(ctx);
 	return result;
 }
+
+void JSPushWin32ErrorObject(duk_context *ctx, const char * function) {
+	JSThrowWin32Error(ctx, GetLastError(), function);
+}
+
+void JSPushWin32ErrorObject(duk_context *ctx, DWORD code, const char * function) {
+	LPVOID buffer;
+	DWORD msg;
+
+	msg = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		code,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&buffer,
+		0, NULL);
+
+	{
+		std::string message;
+
+		if (msg) {
+			message = Utf16ToUtf8(std::wstring((LPCTSTR)buffer));
+			LocalFree(buffer);
+		}
+		if (function) {
+			if (msg)
+				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x)@%s: %s", code, function, message.c_str());
+			else
+				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x)@%s", code, function);
+		} else {
+			if (msg)
+				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x): %s", code, message.c_str());
+			else
+				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x)", code);
+		}
+
+		duk_push_uint(ctx, code);
+		duk_put_prop_string(ctx, -2, "code");
+
+		if (function)
+			duk_push_string(ctx, function);
+		else
+			duk_push_undefined(ctx);
+		duk_put_prop_string(ctx, -2, "function");
+	}
+}
+
+void JSThrowWin32Error(duk_context *ctx, const char * function) {
+	JSThrowWin32Error(ctx, GetLastError(), function);
+}
+
+void JSThrowWin32Error(duk_context *ctx, DWORD code, const char * function) {
+	JSPushWin32ErrorObject(ctx, code, function);
+	duk_throw(ctx);
+}
