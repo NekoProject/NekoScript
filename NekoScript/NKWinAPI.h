@@ -1,0 +1,20 @@
+#pragma once
+#include "stdafx.h"
+#include "JSClass.h"
+#include "Helper.h"
+
+class NKWinAPI
+	: public JSClass<NKWinAPI> {
+private:
+	HMODULE module = 0;
+	FARPROC proc = 0;
+
+public:
+	NKWinAPI(duk_context *ctx, void *ptr);
+	~NKWinAPI();
+
+	duk_ret_t Call();
+
+	static NKWinAPI* tryConstruct(duk_context *ctx, void *ptr);
+	static void setupPrototype(duk_context *ctx);
+};

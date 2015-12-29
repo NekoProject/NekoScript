@@ -6,6 +6,7 @@
 #include "JSEngineExtra.h"
 #include "JSFileSystem.h"
 #include "JSEventEmitter.h"
+#include "NKWinAPI.h"
 #include "NKWinTaskDialog.h"
 #include <lzma\CPP\Common\CommandLineParser.h>
 
@@ -15,12 +16,12 @@ duk_context *CreateDuktapeContext() {
 	JSEngineExtra::setup(ctx);
 	JSProcess::setup(ctx);
 	JSFileSystem::setup(ctx);
+	NKWinAPI::setup(ctx); duk_put_global_string(ctx, "NKWinAPI");
 
 #ifndef NEKO_MINIMAL
 	JSEventEmitter::setup(ctx);
 
-	NKWinTaskDialog::setup(ctx);
-	duk_put_global_string(ctx, "NKWinTaskDialog");
+	NKWinTaskDialog::setup(ctx); duk_put_global_string(ctx, "NKWinTaskDialog");
 #endif
 
 	return ctx;

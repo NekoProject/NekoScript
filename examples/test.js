@@ -52,8 +52,6 @@ function msgBox(content) {
 var msgbox = msgBox;
 
 function main() {
-    return main2();
-
     var func = Duktape.compile("3+3", "a.js", Duktape.compile.flagStrict);
     msgBox(func);
     msgBox(Duktape.enc('jc', Duktape.dumpBytecode(func)));
@@ -74,4 +72,9 @@ function main() {
     fs.writeFileSync("D:/NekoIM/更新履历.txt.233", code);
 }
 
-main();
+function main3() {
+    var api = new NKWinAPI("user32", "MessageBoxA");
+    api.call(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
+}
+
+main3();

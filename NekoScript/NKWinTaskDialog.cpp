@@ -10,6 +10,10 @@ NKWinTaskDialog::NKWinTaskDialog(duk_context *ctx, void *ptr) : JSClass(ctx, ptr
 NKWinTaskDialog::~NKWinTaskDialog() {
 }
 
+NKWinTaskDialog* NKWinTaskDialog::tryConstruct(duk_context *ctx, void *ptr) {
+	return new NKWinTaskDialog(ctx, ptr);
+}
+
 static inline PCWSTR ParseIcon(const std::string &icon) {
 	if (icon == "") return 0;
 	if (icon == "null") return 0;

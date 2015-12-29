@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "JSClass.h"
 #include "Helper.h"
-#include "NKWinTaskDialog.h"
 
 class NKWinTaskDialog
 	: public JSClass<NKWinTaskDialog>
@@ -17,6 +16,7 @@ public:
 	duk_ret_t Show();
 	duk_ret_t PreventClose();
 
+	static NKWinTaskDialog* tryConstruct(duk_context *ctx, void *ptr);
 	static void setupPrototype(duk_context *ctx);
 
 private:

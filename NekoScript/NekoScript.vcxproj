@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="DebugConsole|Win32">
@@ -190,6 +190,7 @@
     <ClInclude Include="JSProcess.h" />
     <ClInclude Include="NekoScript.h" />
     <ClInclude Include="JSFileSystem.h" />
+    <ClInclude Include="NKWinAPI.h" />
     <ClInclude Include="NKWinTaskDialog.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="JSProcess.cpp" />
     <ClCompile Include="NekoScript.cpp" />
     <ClCompile Include="JSFileSystem.cpp" />
+    <ClCompile Include="NKWinAPI.cpp" />
     <ClCompile Include="NKWinTaskDialog.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="stdafx.cpp">

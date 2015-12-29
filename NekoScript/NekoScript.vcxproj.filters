@@ -66,6 +66,9 @@
     <ClInclude Include="JSEngineExtra.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NKWinAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -116,6 +119,9 @@
     <ClCompile Include="JSEngineExtra.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NKWinAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NekoScript.rc">
@@ -134,6 +140,8 @@
     <None Include="lib\init_EventEmitter.js">
       <Filter>JS Libraries</Filter>
     </None>
-    <None Include="GenerateResources.neko.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="GenerateResources.neko.js" />
   </ItemGroup>
 </Project>

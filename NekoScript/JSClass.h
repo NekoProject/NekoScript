@@ -9,7 +9,7 @@ class JSClass
 	using PFunc = duk_ret_t(T::*)();
 public:
 	static void setup(duk_context *ctx) {
-		duk_push_c_function(ctx, constructor, 0);
+		duk_push_c_function(ctx, constructor, DUK_VARARGS);
 
 		duk_push_string(ctx, typeid(T).name() + 6);
 		duk_put_prop_string(ctx, -2, "name");
@@ -36,11 +36,12 @@ protected:
 		}
 
 		duk_push_this(ctx);
-		T* self = new T(ctx, duk_get_heapptr(ctx, -1));
+		T* self = T::tryConstruct(ctx, duk_get_heapptr(ctx, -1));
 		duk_push_c_function(ctx, finalizer, 1);
 		duk_set_finalizer(ctx, -2);
 		duk_push_pointer(ctx, reinterpret_cast<void*>(self));
 		duk_put_prop_string(ctx, -2, JSClassIdentifier);
+
 		return 0;
 	}
 
