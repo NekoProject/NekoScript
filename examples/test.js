@@ -73,8 +73,9 @@ function main() {
 }
 
 function main3() {
-    var api = new NKWinAPI("user32", "MessageBoxA");
-    api.call(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
+    var MessageBoxA = new NKWinAPI("user32", "MessageBoxA");
+    msgbox(MessageBoxA);
+    MessageBoxA(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
 }
 
 main3();

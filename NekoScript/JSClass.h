@@ -2,14 +2,16 @@
 #include "stdafx.h"
 #include <duktape\duktape.h>
 
-#define JSClassIdentifier ((std::string("\xFFi") + (typeid(T).name() + 6)).c_str())
+#define JSClassIdentifier (JSClassIdentifier_(T))
+#define JSClassIdentifier_(T) ((std::string("\xFFi") + (typeid(T).name() + 6)).c_str())
+
 template<typename T>
 class JSClass
 {
 	using PFunc = duk_ret_t(T::*)();
 public:
 	static void setup(duk_context *ctx) {
-		duk_push_c_function(ctx, constructor, DUK_VARARGS);
+		duk_push_c_function(ctx, T::constructor, DUK_VARARGS);
 
 		duk_push_string(ctx, typeid(T).name() + 6);
 		duk_put_prop_string(ctx, -2, "name");
@@ -30,26 +32,40 @@ protected:
 		duk_put_prop_string(ctx, -2, name);
 	}
 
+	static duk_ret_t constructorFunctionCall(duk_context *ctx) {
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	static void constructorPushThis(duk_context *ctx) {
+		duk_push_this(ctx);
+	}
+
+	static void constructorExtra(duk_context *ctx, T* self) {}
+
 	static duk_ret_t constructor(duk_context *ctx) {
 		if (!duk_is_constructor_call(ctx)) {
-			return DUK_RET_TYPE_ERROR;
+			return T::constructorFunctionCall(ctx);
 		}
 
-		duk_push_this(ctx);
+		T::constructorPushThis(ctx);
 		T* self = T::tryConstruct(ctx, duk_get_heapptr(ctx, -1));
 		duk_push_c_function(ctx, finalizer, 1);
 		duk_set_finalizer(ctx, -2);
 		duk_push_pointer(ctx, reinterpret_cast<void*>(self));
 		duk_put_prop_string(ctx, -2, JSClassIdentifier);
 
-		return 0;
+		T::constructorExtra(ctx, self);
+		return 1;
 	}
+
+	static void finalizerExtra(duk_context *ctx, T* self) {}
 
 	static duk_ret_t finalizer(duk_context *ctx) {
 		T* self;
 		duk_get_prop_string(ctx, -1, JSClassIdentifier);
 		self = reinterpret_cast<T*>(duk_get_pointer(ctx, -1));
 		duk_pop(ctx);
+		T::finalizerExtra(ctx, self);
 		duk_del_prop_string(ctx, -1, JSClassIdentifier);
 		_ASSERTE(self);
 		delete self;
@@ -69,4 +85,3 @@ protected:
 		return (self->*func)();
 	}
 };
-#undef JSClassIdentifier

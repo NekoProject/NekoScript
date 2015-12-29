@@ -45,6 +45,22 @@ bool FileExists(LPCTSTR szPath)
 		!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+std::wstring GetModulePath(HMODULE module) {
+	std::vector<wchar_t> executablePath(MAX_PATH);
+
+	DWORD result = GetModuleFileNameW(module, &executablePath[0], static_cast<DWORD>(executablePath.size()));
+	while (result == executablePath.size()) {
+		executablePath.resize(executablePath.size() * 2);
+		result = GetModuleFileNameW(module, &executablePath[0], static_cast<DWORD>(executablePath.size()));
+	}
+
+	if (result == 0) {
+		return std::wstring();
+	}
+
+	return std::wstring(executablePath.begin(), executablePath.begin() + result);
+}
+
 std::string JSGetPropString(duk_context *ctx, const std::string& name)
 {
 	std::string result;

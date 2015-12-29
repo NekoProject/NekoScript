@@ -6,6 +6,7 @@ std::wstring Utf8ToUtf16(const std::string &s);
 std::string Utf16ToUtf8(const std::wstring &s);
 std::string ReadWholeFileAsString(const std::wstring &fname);
 bool FileExists(LPCTSTR szPath);
+std::wstring GetModulePath(HMODULE module);
 
 std::string JSGetPropString(duk_context *ctx, const std::string& name);
 std::string JSGetPropString(duk_context *ctx, duk_uarridx_t arr_index);
