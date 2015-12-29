@@ -26,6 +26,16 @@ void JSEngineExtra::setup(duk_context *ctx) {
 	duk_put_prop_string(ctx, -2, "flagStrict");
 	duk_put_prop_string(ctx, -2, "compile");
 
+	duk_push_c_function(ctx, &dumpBytecode, 3);
+	duk_push_string(ctx, "engineExtra_dumpBytecode");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "dumpBytecode");
+
+	duk_push_c_function(ctx, &loadBytecode, 3);
+	duk_push_string(ctx, "engineExtra_loadBytecode");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "loadBytecode");
+
 	duk_put_prop_string(ctx, -2, "Duktape");
 	duk_pop(ctx);
 }
@@ -44,5 +54,17 @@ duk_ret_t JSEngineExtra::compile(duk_context *ctx) {
 	duk_dup(ctx, 0);
 	duk_dup(ctx, 1);
 	duk_compile(ctx, type);
+	return 1;
+}
+
+duk_ret_t JSEngineExtra::dumpBytecode(duk_context *ctx) {
+	duk_dup(ctx, 0);
+	duk_dump_function(ctx);
+	return 1;
+}
+
+duk_ret_t JSEngineExtra::loadBytecode(duk_context *ctx) {
+	duk_dup(ctx, 0);
+	duk_load_function(ctx);
 	return 1;
 }

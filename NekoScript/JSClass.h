@@ -48,6 +48,8 @@ protected:
 		T* self;
 		duk_get_prop_string(ctx, -1, JSClassIdentifier);
 		self = reinterpret_cast<T*>(duk_get_pointer(ctx, -1));
+		duk_pop(ctx);
+		duk_del_prop_string(ctx, -1, JSClassIdentifier);
 		_ASSERTE(self);
 		delete self;
 

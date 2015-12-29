@@ -4,6 +4,7 @@
 
 void JSEventEmitter::setup(duk_context *ctx)
 {
+#ifndef NEKO_MINIMAL
 	duk_push_global_stash(ctx);
 	duk_get_prop_string(ctx, -1, "EventEmitter");
 	if (duk_is_object(ctx, -1)) {
@@ -12,9 +13,9 @@ void JSEventEmitter::setup(duk_context *ctx)
 	}
 
 	duk_pop(ctx);
-	duk_push_string(ctx, NekoResGet(NEKORES_INIT_EVENT_EMITTER));
-	duk_push_string(ctx, "neko://lib/init_EventEmitter.js");
-	duk_compile(ctx, NULL);
+	duk_push_external_buffer(ctx);
+	duk_config_buffer(ctx, -1, (void *) NekoResGet(NEKORES_INIT_EVENT_EMITTER), NekoResLength(NEKORES_INIT_EVENT_EMITTER));
+	duk_load_function(ctx);
 	duk_call(ctx, 0);
 	duk_get_prop_string(ctx, -1, "prototype");
 	duk_get_prop_string(ctx, -1, "emit");
@@ -22,6 +23,7 @@ void JSEventEmitter::setup(duk_context *ctx)
 	duk_put_prop_string(ctx, -3, "EventEmitterPrototype");
 	duk_put_prop_string(ctx, -2, "EventEmitter");
 	duk_pop(ctx);
+#endif
 }
 
 void JSEventEmitter::putOnStack(duk_context *ctx)

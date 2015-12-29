@@ -35,7 +35,14 @@ var addResource = function (name, content) {
     offset += content.length + 1;
 };
 
-addResource("INIT_EVENT_EMITTER", fs.readFileSync(path.join(projectDir, "lib", "init_EventEmitter.js")));
+var getCompiledCode = function (name) {
+    var code = fs.readFileSync(path.join(projectDir, "lib", name)).toString("utf-8");
+    var func = Duktape.compile(code, "neko://lib/" + name, 0);
+    var byteCode = Duktape.dumpBytecode(func);
+    return byteCode;
+};
+
+addResource("INIT_EVENT_EMITTER", getCompiledCode("init_EventEmitter.js"));
 
 code += 'const _NekoRes_Meta_t _NekoRes_Meta[] = {' + '\n';
 code += metas;

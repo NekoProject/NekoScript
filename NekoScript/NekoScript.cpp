@@ -51,6 +51,8 @@ int AppMain() {
 	int retCode = 0;
 	std::wstring fileName;
 
+	SetProcessDPIAware();
+
 	UStringVector commandStrings;
 	NCommandLineParser::SplitCommandLine(GetCommandLineW(), commandStrings);
 	_ASSERTE(commandStrings.Size() >= 1);

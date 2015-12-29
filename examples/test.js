@@ -2,7 +2,7 @@ function main2() {
     var dialog = new NKWinTaskDialog();
     dialog.on("created", function (x) { alert("created"); alert.apply(this, arguments) });
     dialog.on("navigated", function (x) { alert("navigated"); alert.apply(this, arguments) });
-    dialog.on("buttonClicked", function (x) { alert("buttonClicked"); alert.apply(this, arguments); dialog.preventClose(); });
+    dialog.on("buttonClicked", function (x) { alert("buttonClicked"); alert.apply(this, arguments); /*dialog.preventClose();*/ });
     dialog.on("hyperlinkClicked", function (x) { alert("hyperlinkClicked"); alert.apply(this, arguments) });
     dialog.on("timer", function (x) { alert("timer"); alert.apply(this, arguments) });
     dialog.on("destroyed", function (x) { alert("destroyed"); alert.apply(this, arguments) });
@@ -49,8 +49,18 @@ function msgBox(content) {
         allowDialogCancellation: true
     });
 }
+var msgbox = msgBox;
 
 function main() {
+    return main2();
+
+    var func = Duktape.compile("3+3", "a.js", Duktape.compile.flagStrict);
+    msgBox(func);
+    msgBox(Duktape.enc('jc', Duktape.dumpBytecode(func)));
+    msgBox(func());
+    return;
+    //msgBox(JSON.stringify(process, null, 4));
+
     var raw = fs.readFileSync("D:/NekoIM/更新履历.txt");
     var code, c;
     code = "extern const unsigned char _RMMVModEmbeddedResource[" + String(raw.length) + "] = {";
