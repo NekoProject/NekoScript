@@ -2,6 +2,7 @@
 #include <duktape\duktape.h>
 #include "NekoScript.h"
 #include "Helper.h"
+#include "JSProcess.h"
 #include "JSFileSystem.h"
 #include "JSEventEmitter.h"
 #include "NKWinTaskDialog.h"
@@ -10,6 +11,7 @@
 duk_context *CreateDuktapeContext() {
 	duk_context *ctx = duk_create_heap_default();
 
+	JSProcess::setup(ctx);
 	JSFileSystem::setup(ctx);
 
 #ifndef NEKO_MINIMAL

@@ -60,6 +60,9 @@
     <ClInclude Include="JSFileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="JSProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -101,6 +104,9 @@
     <ClCompile Include="JSFileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="JSProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NekoScript.rc">
@@ -118,6 +124,9 @@
   <ItemGroup>
     <None Include="lib\init_EventEmitter.js">
       <Filter>JS Libraries</Filter>
+    </None>
+    <None Include="prebuild.js">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

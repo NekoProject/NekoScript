@@ -186,6 +186,7 @@
     <ClInclude Include="Helper.h" />
     <ClInclude Include="JSClass.h" />
     <ClInclude Include="JSEventEmitter.h" />
+    <ClInclude Include="JSProcess.h" />
     <ClInclude Include="NekoScript.h" />
     <ClInclude Include="JSFileSystem.h" />
     <ClInclude Include="NKWinTaskDialog.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="JSClass.cpp" />
     <ClCompile Include="JSEventEmitter.cpp" />
+    <ClCompile Include="JSProcess.cpp" />
     <ClCompile Include="NekoScript.cpp" />
     <ClCompile Include="JSFileSystem.cpp" />
     <ClCompile Include="NKWinTaskDialog.cpp" />
@@ -225,6 +227,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\init_EventEmitter.js" />
+    <None Include="prebuild.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
