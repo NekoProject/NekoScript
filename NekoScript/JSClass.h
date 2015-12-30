@@ -9,6 +9,8 @@ template<typename T>
 class JSClass
 {
 	using PFunc = duk_ret_t(T::*)();
+	using POperator = void(*)(duk_context *);
+
 public:
 	static void setup(duk_context *ctx) {
 		duk_push_c_function(ctx, T::constructor, DUK_VARARGS);
@@ -73,10 +75,18 @@ protected:
 		return 0;
 	}
 
-	template<PFunc func>
+	static void operatorPushThis(duk_context *ctx) {
+		duk_push_this(ctx);
+	}
+
+	static void operatorPushCurrentFunction(duk_context *ctx) {
+		duk_push_current_function(ctx);
+	}
+
+	template<PFunc func, POperator oper = &T::operatorPushThis>
 	static duk_ret_t instanceMethodWrapper(duk_context *ctx) {
 		T* self;
-		duk_push_this(ctx);
+		oper(ctx);
 		duk_get_prop_string(ctx, -1, JSClassIdentifier);
 		self = reinterpret_cast<T*>(duk_get_pointer(ctx, -1));
 		_ASSERTE(self);

@@ -2,9 +2,6 @@
 #include "Helper.h"
 #include "NKWinAPI.h"
 
-unsigned short NKWinAPI::lastMagic = 0u;
-std::map<const unsigned short, NKWinAPI*> NKWinAPI::magics = std::map<const unsigned short, NKWinAPI*>();
-
 NKWinAPI::NKWinAPI(duk_context *ctx, void *ptr) : JSClass(ctx, ptr) {
 
 }
@@ -12,7 +9,7 @@ NKWinAPI::NKWinAPI(duk_context *ctx, void *ptr) : JSClass(ctx, ptr) {
 NKWinAPI::~NKWinAPI() {}
 
 void NKWinAPI::constructorPushThis(duk_context *ctx) {
-	duk_push_c_function(ctx, callable, DUK_VARARGS);
+	duk_push_c_function(ctx, instanceMethodWrapper<&Call, &operatorPushCurrentFunction>, DUK_VARARGS);
 	duk_push_global_stash(ctx);
 	duk_get_prop_string(ctx, -1, "NKWinAPIPrototype");
 	duk_swap_top(ctx, -2);
@@ -21,8 +18,6 @@ void NKWinAPI::constructorPushThis(duk_context *ctx) {
 }
 
 void NKWinAPI::constructorExtra(duk_context *ctx, NKWinAPI* self) {
-	duk_set_magic(ctx, -1, self->allocMagic());
-
 	std::wstring moduleName = self->moduleName;
 	std::size_t found = moduleName.find_last_of(L"/\\");
 	if (found != std::wstring::npos) {
@@ -32,34 +27,6 @@ void NKWinAPI::constructorExtra(duk_context *ctx, NKWinAPI* self) {
 	std::string name = Utf16ToUtf8(moduleName) + "!" + self->procName;
 	duk_push_string(ctx, name.c_str());
 	duk_put_prop_string(ctx, -2, "name");
-}
-
-void NKWinAPI::finalizerExtra(duk_context *ctx, NKWinAPI* self) {
-	self->freeMagic();
-}
-
-unsigned short NKWinAPI::allocMagic() {
-	_ASSERTE(!magicAllocated);
-
-	magic = lastMagic + 1;
-	while (magics.find(magic) != magics.end()) magic++;
-
-	lastMagic = magic;
-	magics[magic] = this;
-	magicAllocated = true;
-	return magic;
-}
-
-void NKWinAPI::freeMagic() {
-	_ASSERTE(magicAllocated);
-	magics.erase(magic);
-	magicAllocated = false;
-}
-
-duk_ret_t NKWinAPI::callable(duk_context *ctx) {
-	unsigned short magic = ((unsigned int)duk_get_current_magic(ctx)) & 0xffffU;
-	NKWinAPI* self = magics[magic];
-	return self->Call();
 }
 
 static HMODULE LoadLibraryUtf8(const char * str) {
