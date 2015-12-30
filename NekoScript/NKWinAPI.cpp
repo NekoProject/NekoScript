@@ -85,7 +85,7 @@ NKWinAPI* NKWinAPI::tryConstruct(duk_context *ctx, void *ptr) {
 	return obj;
 }
 
-static int doStdcall(FARPROC proc, int argc, void* argv[]) {
+static unsigned int doStdcall(FARPROC proc, int argc, void* argv[]) {
 	int retv = 0;
 	FARPROC _proc = proc;
 	int _argc = argc;
@@ -125,10 +125,9 @@ duk_ret_t NKWinAPI::Call() {
 			value = (void*) (unsigned int) duk_get_uint(ctx, i);
 		} else if (duk_is_null_or_undefined(ctx, i)) {
 			value = 0;
-		} else if (duk_is_buffer(ctx, i)) {
-			value = duk_get_buffer_data(ctx, i, NULL);
 		} else if (duk_is_string(ctx, i)) {
-			value = (void*) duk_get_string(ctx, i);
+			value = (void*)duk_get_string(ctx, i);
+		} else if ((value = duk_get_buffer_data(ctx, i, NULL))) {
 		} else {
 			delete[] args;
 			duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, "Only integers, null's, undefined's, buffers and strings are supported. ");
@@ -138,10 +137,10 @@ duk_ret_t NKWinAPI::Call() {
 		*--p = value;
 	}
 
-	int ret = doStdcall(this->proc, count, args);
-
+	unsigned int ret = doStdcall(this->proc, count, args);
 	delete[] args;
-	return 0;
+	duk_push_uint(ctx, ret);
+	return 1;
 }
 
 void NKWinAPI::setupPrototype(duk_context *ctx) {

@@ -73,9 +73,43 @@ function main() {
 }
 
 function main3() {
-    var MessageBoxA = new NKWinAPI("user32", "MessageBoxA");
-    msgbox(MessageBoxA);
-    MessageBoxA(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
+    //new NKWinAPI("user32", "MessageBoxA")(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
+
+    var QueryPerformanceCounter = new NKWinAPI("kernel32", "QueryPerformanceCounter");
+
+    function time() {
+        var buf = new Buffer(8);
+        QueryPerformanceCounter(buf);
+        return buf;
+    }
+
+    var freq = (function() {
+        var buf = new Buffer(8);
+        new NKWinAPI("kernel32", "QueryPerformanceFrequency")(buf);
+        return buf.readInt32LE(0);
+    })();
+
+    function timediff(a, b) {
+        var diff = 0;
+        var power = 1;
+        for (var i = 0; i < 8; i++) {
+            diff += (a[i] - b[i]) * power;
+            power *= 256;
+        }
+        return diff / freq;
+    }
+
+    function benchmark() {
+        var start = time();
+        for (var i = 0; i < 1000000; i++) {
+            1 + 1;
+        }
+        var end = time();
+        return timediff(end, start);
+    }
+
+    var results = [benchmark(), benchmark(), benchmark(), benchmark(), benchmark(), benchmark(), benchmark(), benchmark(), benchmark(), benchmark()];
+    msgbox(JSON.stringify(results, null, 4));
 }
 
 main3();

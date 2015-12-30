@@ -104,7 +104,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPTSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-	ShowConsole();
+	// ShowConsole();
 	isConsoleMode = false;
 	return AppMain();
 }
