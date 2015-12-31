@@ -233,3 +233,6 @@ _Pvt_Extensions
 
 /NekoScript/Resource.generated.cpp
 /NekoScript/Resource.generated.h
+/examples/*.js
+!/examples/test.js
+/examples/*.jsc

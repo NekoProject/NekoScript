@@ -21,7 +21,6 @@ duk_context *CreateDuktapeContext() {
 
 #ifndef NEKO_MINIMAL
 	JSEventEmitter::setup(ctx);
-
 	NKWinTaskDialog::setup(ctx); duk_put_global_string(ctx, "NKWinTaskDialog");
 #endif
 
@@ -76,29 +75,39 @@ int AppMain() {
 		JSProcess::_scriptArgv.push_back(std::wstring(commandStrings[i]));
 	}
 
-	if (FileExists(fileName.c_str())) {
-		duk_context *ctx = CreateDuktapeContext();
-		duk_push_string(ctx, Utf16ToUtf8(fileName).c_str());
-		if (duk_pcompile_string_filename(ctx, 0, ReadWholeFileAsString(fileName).c_str()) != DUK_EXEC_SUCCESS) {
-			Fail(L"Compile Failed", Utf8ToUtf16(std::string(duk_safe_to_string(ctx, -1))));
-			retCode = 1;
-			duk_pop(ctx);
-		} else {
-			duk_int_t rc = duk_pcall(ctx, 0);
-			if (rc != DUK_EXEC_SUCCESS) {
-				Fail(L"Uncaught Error", Utf8ToUtf16(JSGetErrorStack(ctx)));
-				retCode = 1;
-				duk_pop(ctx);
-			} else {
-				duk_pop(ctx);
-			}
-		}
-
-		duk_destroy_heap(ctx);
-	} else {
+	if (!FileExists(fileName.c_str())) {
 		Fail(L"Module Not Found", fileName + L" cannot be found.");
+		return -1;
 	}
 
+	duk_context *ctx = CreateDuktapeContext();
+	if (fileName.size() > 4 && (fileName.substr(fileName.size() - 4).compare(L".jsc") == 0 || fileName.substr(fileName.size() - 4).compare(L".bin") == 0)) {
+		duk_push_string(ctx, Utf16ToUtf8(fileName).c_str());
+		if (duk_safe_call(ctx, JSFileSystem::readFileSync, 1, 1) != DUK_EXEC_SUCCESS) {
+			Fail(L"Bytecode Error", Utf8ToUtf16(std::string(duk_safe_to_string(ctx, -1))));
+			return -1;
+		}
+		if (duk_safe_call(ctx, JSEngineExtra::loadBytecode, 1, 1) != DUK_EXEC_SUCCESS) {
+			Fail(L"Bytecode Error", Utf8ToUtf16(std::string(duk_safe_to_string(ctx, -1))));
+			return -1;
+		}
+	} else {
+		duk_push_string(ctx, Utf16ToUtf8(fileName).c_str());
+		if (duk_pcompile_string_filename(ctx, 0, ReadWholeFileAsString(fileName).c_str()) != DUK_EXEC_SUCCESS) {
+			Fail(L"Source Error", Utf8ToUtf16(std::string(duk_safe_to_string(ctx, -1))));
+			return -1;
+		}
+	}
+
+	duk_int_t rc = duk_pcall(ctx, 0);
+	if (rc != DUK_EXEC_SUCCESS) {
+		Fail(L"Uncaught Error", Utf8ToUtf16(JSGetErrorStack(ctx)));
+		return -1;
+	}
+
+	duk_pop(ctx);
+	duk_destroy_heap(ctx);
+	
 	return retCode;
 }
 
