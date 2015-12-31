@@ -2,6 +2,7 @@
 #include "Helper.h"
 
 duk_ret_t JSFileSystem::readdirSync(duk_context *ctx) {
+	JSThrowWin32Error(ctx, ERROR_FILENAME_EXCED_RANGE);
 	return 0;
 }
 
@@ -57,10 +58,10 @@ duk_ret_t JSFileSystem::writeFileSync(duk_context *ctx) {
 void JSFileSystem::setup(duk_context *ctx) {
 	duk_push_object(ctx);
 	
-	//duk_push_c_function(ctx, &readdirSync, 1);
-	//duk_push_string(ctx, "fs_readdirSync");
-	//duk_put_prop_string(ctx, -2, "name");
-	//duk_put_prop_string(ctx, -2, "readdirSync");
+	duk_push_c_function(ctx, &readdirSync, 1);
+	duk_push_string(ctx, "fs_readdirSync");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "readdirSync");
 
 	duk_push_c_function(ctx, &existsSync, 1);
 	duk_push_string(ctx, "fs_existsSync");

@@ -2,6 +2,7 @@
 #include <duktape\duktape.h>
 #include "NekoScript.h"
 #include "Helper.h"
+#include "ExceptionHandler.h"
 #include "JSProcess.h"
 #include "JSEngineExtra.h"
 #include "JSFileSystem.h"
@@ -44,11 +45,13 @@ void Fail(std::wstring title, std::wstring content) {
 	if (IsConsoleMode()) {
 		std::wcerr << title << ": " << content;
 	} else {
-		TaskDialog(NULL, NULL, L"NekoScript", title.c_str(), content.c_str(), TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
+		TaskDialog(NULL, NULL, L"NekoScript", title.c_str(), content.c_str(), TDCBF_CANCEL_BUTTON, TD_ERROR_ICON, NULL);
 	}
 }
 
 int AppMain() {
+	InstallExceptionHandler();
+
 	int retCode = 0;
 	std::wstring fileName;
 
@@ -64,7 +67,7 @@ int AppMain() {
 		scriptArgvOffset = 2;
 	}
 	if (fileName.empty()) {
-		fileName = L"D:\\git\\NekoScript\\examples\\test.js";
+		fileName = L"D:\\git\\qtwrap\\installer\\windows\\dist\\app.neko.js";
 	}
 
 	JSProcess::_execPath = commandStrings[0];

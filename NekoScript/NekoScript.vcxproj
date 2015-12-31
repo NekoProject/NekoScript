@@ -183,6 +183,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ExceptionHandler.h" />
     <ClInclude Include="Helper.h" />
     <ClInclude Include="JSClass.h" />
     <ClInclude Include="JSEngineExtra.h" />
@@ -197,8 +198,10 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="vendors\duktape\duktape.h" />
     <ClInclude Include="vendors\duktape\duk_config.h" />
+    <ClInclude Include="vendors\StackWalker\StackWalker.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ExceptionHandler.cpp" />
     <ClCompile Include="Helper.cpp" />
     <ClCompile Include="JSClass.cpp" />
     <ClCompile Include="JSEngineExtra.cpp" />
@@ -222,6 +225,7 @@
     <ClCompile Include="vendors\lzma\CPP\Common\MyVector.cpp" />
     <ClCompile Include="vendors\lzma\CPP\Common\MyWindows.cpp" />
     <ClCompile Include="vendors\lzma\CPP\Common\StringConvert.cpp" />
+    <ClCompile Include="vendors\StackWalker\StackWalker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NekoScript.rc" />

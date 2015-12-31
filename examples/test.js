@@ -72,9 +72,9 @@ function main() {
     fs.writeFileSync("D:/NekoIM/更新履历.txt.233", code);
 }
 
-function main3() {
-    //new NKWinAPI("user32", "MessageBoxA")(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
+//new NKWinAPI("user32", "MessageBoxA")(0, "Hello from NKWinAPI.", "NKWinAPI", 16);
 
+function main3() {
     var QueryPerformanceCounter = new NKWinAPI("kernel32", "QueryPerformanceCounter");
 
     function time() {

@@ -25,6 +25,26 @@ std::string Utf16ToUtf8(const std::wstring &s)
 	return ret;
 }
 
+std::wstring ANSIToUtf16(const std::string &s) {
+	std::wstring ret;
+	int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), s.length(), NULL, 0);
+	if (len > 0) {
+		ret.resize(len);
+		MultiByteToWideChar(CP_ACP, 0, s.c_str(), s.length(), const_cast<wchar_t*>(ret.c_str()), len);
+	}
+	return ret;
+}
+
+std::string Utf16ToANSI(const std::wstring &s) {
+	std::string ret;
+	int len = WideCharToMultiByte(CP_ACP, 0, s.c_str(), s.length(), NULL, 0, NULL, NULL);
+	if (len > 0) {
+		ret.resize(len);
+		WideCharToMultiByte(CP_ACP, 0, s.c_str(), s.length(), const_cast<char*>(ret.c_str()), len, NULL, NULL);
+	}
+	return ret;
+}
+
 std::string ReadWholeFileAsString(const std::wstring &fname)
 {
 	std::ifstream t(fname);
@@ -122,20 +142,45 @@ static int JSGetErrorStackInternal(duk_context *ctx) {
 	return 1;
 }
 
+std::string JSReplaceString(duk_context *ctx, const std::string& str, const std::string& pattern, const std::string& replacement, const std::string& option) {
+	duk_int_t result;
+	
+	result = duk_peval_string(ctx, "(function(s,h,i,t){return s.replace(new RegExp(h,t),i)})");
+	if (result != 0) {
+		std::string msg = duk_safe_to_string(ctx, -1);
+		duk_pop(ctx);
+
+		throw std::runtime_error(msg);
+	}
+
+	duk_push_string(ctx, str.c_str());
+	duk_push_string(ctx, pattern.c_str());
+	duk_push_string(ctx, replacement.c_str());
+	duk_push_string(ctx, option.c_str());
+	
+	result = duk_pcall(ctx, 4);
+	if (result != 0) {
+		std::string msg = duk_safe_to_string(ctx, -1);
+		duk_pop(ctx);
+
+		throw std::runtime_error(msg);
+	}
+
+	std::string output = duk_get_string(ctx, -1);
+	duk_pop(ctx);
+	return output;
+}
+
 std::string JSGetErrorStack(duk_context *ctx) {
 	duk_dup_top(ctx);
 	duk_safe_call(ctx, JSGetErrorStackInternal, 1, 1);
 	duk_safe_to_string(ctx, -1);
 	std::string result = duk_get_string(ctx, -1);
 	duk_pop(ctx);
-	return result;
+	return JSReplaceString(ctx, result, "^\\t", " *  ", "mg");
 }
 
-void JSPushWin32ErrorObject(duk_context *ctx, const char * function) {
-	JSThrowWin32Error(ctx, GetLastError(), function);
-}
-
-void JSPushWin32ErrorObject(duk_context *ctx, DWORD code, const char * function) {
+void JSPushWin32ErrorObject(const char * filename, duk_int_t line, duk_context *ctx, DWORD code, const char * function) {
 	LPVOID buffer;
 	DWORD msg;
 
@@ -158,14 +203,14 @@ void JSPushWin32ErrorObject(duk_context *ctx, DWORD code, const char * function)
 		}
 		if (function) {
 			if (msg)
-				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x)@%s: %s", code, function, message.c_str());
+				duk_push_error_object_raw(ctx, DUK_ERR_ERROR, filename, line, "Win32Error(0x%08x)@%s: %s", code, function, message.c_str());
 			else
-				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x)@%s", code, function);
+				duk_push_error_object_raw(ctx, DUK_ERR_ERROR, filename, line, "Win32Error(0x%08x)@%s", code, function);
 		} else {
 			if (msg)
-				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x): %s", code, message.c_str());
+				duk_push_error_object_raw(ctx, DUK_ERR_ERROR, filename, line, "Win32Error(0x%08x): %s", code, message.c_str());
 			else
-				duk_push_error_object(ctx, DUK_ERR_ERROR, "Win32Error(0x%08x)", code);
+				duk_push_error_object_raw(ctx, DUK_ERR_ERROR, filename, line, "Win32Error(0x%08x)", code);
 		}
 
 		duk_push_uint(ctx, code);
@@ -179,11 +224,11 @@ void JSPushWin32ErrorObject(duk_context *ctx, DWORD code, const char * function)
 	}
 }
 
-void JSThrowWin32Error(duk_context *ctx, const char * function) {
-	JSThrowWin32Error(ctx, GetLastError(), function);
+void JSThrowWin32ErrorRaw(const char * filename, duk_int_t line, duk_context *ctx, const char * function) {
+	JSThrowWin32ErrorRaw(filename, line, ctx, GetLastError(), function);
 }
 
-void JSThrowWin32Error(duk_context *ctx, DWORD code, const char * function) {
-	JSPushWin32ErrorObject(ctx, code, function);
+void JSThrowWin32ErrorRaw(const char * filename, duk_int_t line, duk_context *ctx, DWORD code, const char * function) {
+	JSPushWin32ErrorObject(filename, line, ctx, code, function);
 	duk_throw(ctx);
 }

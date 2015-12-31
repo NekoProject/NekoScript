@@ -25,6 +25,9 @@
     <Filter Include="Vendors\LZMA">
       <UniqueIdentifier>{917b1389-82f0-4a2e-a849-650f9f81341a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Vendors\StackWalker">
+      <UniqueIdentifier>{8413df84-dc7e-4655-ba7b-5c3b2099de9b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -67,6 +70,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NKWinAPI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendors\StackWalker\StackWalker.h">
+      <Filter>Vendors\StackWalker</Filter>
+    </ClInclude>
+    <ClInclude Include="ExceptionHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -120,6 +129,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NKWinAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\StackWalker\StackWalker.cpp">
+      <Filter>Vendors\StackWalker</Filter>
+    </ClCompile>
+    <ClCompile Include="ExceptionHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
