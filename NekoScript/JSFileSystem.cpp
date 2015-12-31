@@ -2,8 +2,44 @@
 #include "Helper.h"
 
 duk_ret_t JSFileSystem::readdirSync(duk_context *ctx) {
-	JSThrowWin32Error(ctx, ERROR_FILENAME_EXCED_RANGE);
-	return 0;
+	duk_require_string(ctx, 0);
+	JSThrowScope
+	{
+		int length = duk_get_length(ctx, 0);
+		if (length > MAX_PATH - 1)
+			JSThrowWin32Error(ctx, ERROR_FILENAME_EXCED_RANGE);
+
+		WIN32_FIND_DATA findfiledata;
+		DWORD result;
+		HANDLE hFind = INVALID_HANDLE_VALUE;
+
+		wchar_t fullpath[MAX_PATH];
+		result = GetFullPathName(Utf8ToUtf16(duk_get_string(ctx, 0)).c_str(), MAX_PATH, fullpath, 0);
+		if (result == 0 || result >= MAX_PATH) JSThrowScopeWin32ErrorLast("GetFullPathName");
+
+		std::wstring fp(fullpath);
+		int i = 0;
+		duk_push_array(ctx);
+
+		hFind = FindFirstFile((fp + L"\\*").c_str(), &findfiledata);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			if (GetLastError() != ERROR_FILE_NOT_FOUND) JSThrowScopeWin32ErrorLast("FindFirstFile");
+		} else {
+			do {
+				if ((findfiledata.cFileName[0] != '.')) {
+					duk_push_string(ctx, Utf16ToUtf8(findfiledata.cFileName).c_str());
+					duk_put_prop_index(ctx, -2, i++);
+				}
+			} while (FindNextFile(hFind, &findfiledata) != 0);
+
+			if (GetLastError() != ERROR_NO_MORE_FILES) {
+				JSThrowScopeWin32ErrorLast("FindNextFile");
+			}
+		}
+	}
+	JSThrowScopeEnd
+
+	return 1;
 }
 
 duk_ret_t JSFileSystem::existsSync(duk_context *ctx) {

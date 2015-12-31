@@ -232,3 +232,69 @@ void JSThrowWin32ErrorRaw(const char * filename, duk_int_t line, duk_context *ct
 	JSPushWin32ErrorObject(filename, line, ctx, code, function);
 	duk_throw(ctx);
 }
+
+unsigned int DynamicInvokeStdcall(FARPROC proc, int argc, void* argv[]) {
+	void** _argv = (void**)alloca(argc * 4);
+	memcpy(_argv, argv, argc * 4);
+	delete[] argv;
+
+	int retv = 0;
+	FARPROC _proc = proc;
+	int _argc = argc;
+
+	__asm {
+		push eax
+		push ebx
+		push ecx
+
+		mov ebx, _argv
+		mov ecx, _argc
+	again:
+		push [ebx]
+		add ebx, 4
+		loop again
+
+		mov eax, _proc
+		call eax
+
+		mov retv, eax
+		pop ecx
+		pop ebx
+		pop eax
+	}
+	return retv;
+}
+
+unsigned int DynamicInvokeCdecl(void *proc, int argc, void* argv[]) {
+	void** _argv = (void**)alloca(argc * 4);
+	memcpy(_argv, argv, argc * 4);
+	delete[] argv;
+
+	int retv = 0;
+	void *_proc = proc;
+	int _argc = argc;
+	int _off = argc * 4;
+
+	__asm {
+		push eax
+		push ebx
+		push ecx
+
+		mov ebx, _argv
+		mov ecx, _argc
+	again:
+		push [ebx]
+		add ebx, 4
+		loop again
+
+		mov eax, _proc
+		call eax
+		add esp, _off
+
+		mov retv, eax
+		pop ecx
+		pop ebx
+		pop eax
+	}
+	return retv;
+}

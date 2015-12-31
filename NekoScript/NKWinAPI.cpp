@@ -52,35 +52,6 @@ NKWinAPI* NKWinAPI::tryConstruct(duk_context *ctx, void *ptr) {
 	return obj;
 }
 
-static unsigned int doStdcall(FARPROC proc, int argc, void* argv[]) {
-	int retv = 0;
-	FARPROC _proc = proc;
-	int _argc = argc;
-	void** _argv = argv;
-
-	__asm {
-		push eax
-		push ebx
-		push ecx
-
-		mov ebx, _argv
-		mov ecx, _argc
-	again:
-		push [ebx]
-		add ebx, 4
-		loop again
-
-		mov eax, _proc
-		call eax
-
-		mov retv, eax
-		pop ecx
-		pop ebx
-		pop eax
-	}
-	return retv;
-}
-
 duk_ret_t NKWinAPI::Call() {
 	int count = duk_get_top(ctx);
 
@@ -104,8 +75,7 @@ duk_ret_t NKWinAPI::Call() {
 		*--p = value;
 	}
 
-	unsigned int ret = doStdcall(this->proc, count, args);
-	delete[] args;
+	unsigned int ret = DynamicInvokeStdcall(this->proc, count, args);
 	duk_push_uint(ctx, ret);
 	return 1;
 }
