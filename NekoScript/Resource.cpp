@@ -3,7 +3,7 @@
 #include "Resource.generated.cpp"
 
 const char * NekoResGet(int index) {
-	return _NekoRes_Payload + _NekoRes_Meta[index].offset;
+	return (const char *)(_NekoRes_Payload + _NekoRes_Meta[index].offset);
 }
 
 unsigned int NekoResLength(int index) {

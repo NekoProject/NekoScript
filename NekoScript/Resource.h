@@ -6,7 +6,7 @@ struct _NekoRes_Meta_t {
 };
 
 extern const _NekoRes_Meta_t _NekoRes_Meta[];
-extern const char _NekoRes_Payload[];
+extern const unsigned char _NekoRes_Payload[];
 
 const char * NekoResGet(int index);
 unsigned int NekoResLength(int index);

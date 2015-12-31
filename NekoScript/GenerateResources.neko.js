@@ -60,7 +60,7 @@ var generateHexDump = function (data) {
     return result.join("");
 }
 
-code += 'const char _NekoRes_Payload[] = {';
+code += 'const unsigned char _NekoRes_Payload[] = {';
 for (var i = 0; i < blocks.length; i++) {
     var block = blocks[i];
     code += '\n// ' + blockTag[i];

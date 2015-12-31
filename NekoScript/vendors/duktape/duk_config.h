@@ -42,6 +42,8 @@
 #ifndef DUK_CONFIG_H_INCLUDED
 #define DUK_CONFIG_H_INCLUDED
 
+#define DUK_OPT_TRACEBACK_DEPTH 32
+
 /*
  *  Compiler features
  */
