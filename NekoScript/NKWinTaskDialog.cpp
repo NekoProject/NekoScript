@@ -8,6 +8,8 @@ NKWinTaskDialog::NKWinTaskDialog(duk_context *ctx, void *ptr) : JSClass(ctx, ptr
 }
 
 NKWinTaskDialog::~NKWinTaskDialog() {
+	_ASSERTE(_buttonsRuntime == nullptr);
+	_ASSERTE(_radiosRuntime == nullptr);
 }
 
 NKWinTaskDialog* NKWinTaskDialog::tryConstruct(duk_context *ctx, void *ptr) {
@@ -48,122 +50,153 @@ static inline std::string ParseCommonButtonID(int button) {
 	return "";
 }
 
-duk_ret_t NKWinTaskDialog::Show() {
-	HRESULT hr;
-	TASKDIALOGCONFIG tdc = { sizeof(TASKDIALOGCONFIG) };
-	std::wstring title, mainInstruction, content, expandedInformation, footer, verificationText, expandedControlText, collapsedControlText;
-	std::string icon;
+void NKWinTaskDialog::CreateConfig() {
 	bool isNull;
 
-	tdc.pfCallback = &staticCallback;
-	tdc.lpCallbackData = reinterpret_cast<LONG_PTR>(this);
+	_ASSERTE(_buttonsRuntime == nullptr);
+	_ASSERTE(_radiosRuntime == nullptr);
 
-	if (duk_is_object(ctx, 0)) 
+	memset(&_tdc, 0, sizeof(TASKDIALOGCONFIG));
+	_tdc.cbSize = sizeof(TASKDIALOGCONFIG);
+	_tdc.hInstance = (HINSTANCE) GetModuleHandle(NULL);
+	_tdc.pfCallback = &staticCallback;
+	_tdc.lpCallbackData = reinterpret_cast<LONG_PTR>(this);
+
+	if (duk_is_object(ctx, 0))
 		duk_dup(ctx, 0);
-	else 
+	else
 		duk_push_object(ctx);
 
-	title = Utf8ToUtf16(JSGetPropString(ctx, "title", &isNull));
-	if (!isNull) tdc.pszWindowTitle = title.c_str();
+#define TextField(JSName, NativeName) \
+	do {\
+		_##JSName = Utf8ToUtf16(JSGetPropString(ctx, #JSName, &isNull)); \
+		if (!isNull) _tdc.NativeName = _##JSName.c_str();\
+	} while(0)
 
-	mainInstruction = Utf8ToUtf16(JSGetPropString(ctx, "mainInstruction", &isNull));
-	if (!isNull) tdc.pszMainInstruction = mainInstruction.c_str();
+	TextField(title,                pszWindowTitle);
+	TextField(mainInstruction,      pszMainInstruction);
+	TextField(content,              pszContent);
+	TextField(expandedInformation,  pszExpandedInformation);
+	TextField(expandedControlText,  pszExpandedControlText);
+	TextField(collapsedControlText, pszCollapsedControlText);
+	TextField(footer,               pszFooter);
+	TextField(verificationText,     pszVerificationText);
 
-	content = Utf8ToUtf16(JSGetPropString(ctx, "content", &isNull));
-	if (!isNull) tdc.pszContent = content.c_str();
+#undef TextField
+#define FlagField(JSName, NativeName) \
+	do {\
+		if (JSGetPropBoolean(ctx, #JSName))\
+			_tdc.dwFlags |= NativeName;\
+	} while(0)
+	
+	FlagField(allowDialogCancellation,  TDF_ALLOW_DIALOG_CANCELLATION);
+	FlagField(useCommandLinks,          TDF_USE_COMMAND_LINKS);
+	FlagField(useCommandLinksNoIcon,    TDF_USE_COMMAND_LINKS_NO_ICON);
+	FlagField(enableHyperlinks,         TDF_ENABLE_HYPERLINKS);
+	FlagField(expandFooterArea,         TDF_EXPAND_FOOTER_AREA);
+	FlagField(expandedByDefault,        TDF_EXPANDED_BY_DEFAULT);
+	FlagField(verificationFlagChecked,  TDF_VERIFICATION_FLAG_CHECKED);
+	FlagField(showProgressBar,          TDF_SHOW_PROGRESS_BAR);
+	FlagField(showMarqueeProgressBar,   TDF_SHOW_MARQUEE_PROGRESS_BAR);
+	FlagField(positionRelativeToWindow, TDF_POSITION_RELATIVE_TO_WINDOW);
+	FlagField(rtlLayout,                TDF_RTL_LAYOUT);
+	FlagField(noDefaultRadioButton,     TDF_NO_DEFAULT_RADIO_BUTTON);
+	FlagField(canBeMinimized,           TDF_CAN_BE_MINIMIZED);
+	FlagField(sizeToContent,            TDF_SIZE_TO_CONTENT);
 
-	expandedInformation = Utf8ToUtf16(JSGetPropString(ctx, "expandedInformation", &isNull));
-	if (!isNull) tdc.pszExpandedInformation = expandedInformation.c_str();
+#undef FlagField
 
-	expandedControlText = Utf8ToUtf16(JSGetPropString(ctx, "expandedControlText", &isNull));
-	if (!isNull) tdc.pszExpandedControlText = expandedControlText.c_str();
-
-	collapsedControlText = Utf8ToUtf16(JSGetPropString(ctx, "collapsedControlText", &isNull));
-	if (!isNull) tdc.pszCollapsedControlText = collapsedControlText.c_str();
-
-	footer = Utf8ToUtf16(JSGetPropString(ctx, "footer", &isNull));
-	if (!isNull) tdc.pszFooter = footer.c_str();
-
-	verificationText = Utf8ToUtf16(JSGetPropString(ctx, "verificationText", &isNull));
-	if (!isNull) tdc.pszVerificationText = verificationText.c_str();
-
-	tdc.pszMainIcon = ParseIcon(JSGetPropString(ctx, "icon"));
-	tdc.pszFooterIcon = ParseIcon(JSGetPropString(ctx, "footerIcon"));
-
-	if (JSGetPropBoolean(ctx, "allowDialogCancellation"))  tdc.dwFlags |= TDF_ALLOW_DIALOG_CANCELLATION;
-	if (JSGetPropBoolean(ctx, "useCommandLinks"))          tdc.dwFlags |= TDF_USE_COMMAND_LINKS;
-	if (JSGetPropBoolean(ctx, "useCommandLinksNoIcon"))    tdc.dwFlags |= TDF_USE_COMMAND_LINKS_NO_ICON;
-	if (JSGetPropBoolean(ctx, "enableHyperlinks"))         tdc.dwFlags |= TDF_ENABLE_HYPERLINKS;
-	if (JSGetPropBoolean(ctx, "expandFooterArea"))         tdc.dwFlags |= TDF_EXPAND_FOOTER_AREA;
-	if (JSGetPropBoolean(ctx, "expandedByDefault"))        tdc.dwFlags |= TDF_EXPANDED_BY_DEFAULT;
-	if (JSGetPropBoolean(ctx, "verificationFlagChecked"))  tdc.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
-	if (JSGetPropBoolean(ctx, "showProgressBar"))          tdc.dwFlags |= TDF_SHOW_PROGRESS_BAR;
-	if (JSGetPropBoolean(ctx, "showMarqueeProgressBar"))   tdc.dwFlags |= TDF_SHOW_MARQUEE_PROGRESS_BAR;
-	if (JSGetPropBoolean(ctx, "positionRelativeToWindow")) tdc.dwFlags |= TDF_POSITION_RELATIVE_TO_WINDOW;
-	if (JSGetPropBoolean(ctx, "rtlLayout"))                tdc.dwFlags |= TDF_RTL_LAYOUT;
-	if (JSGetPropBoolean(ctx, "noDefaultRadioButton"))     tdc.dwFlags |= TDF_NO_DEFAULT_RADIO_BUTTON;
-	if (JSGetPropBoolean(ctx, "canBeMinimized"))           tdc.dwFlags |= TDF_CAN_BE_MINIMIZED;
-	if (JSGetPropBoolean(ctx, "sizeToContent"))            tdc.dwFlags |= TDF_SIZE_TO_CONTENT;
-
-	TASKDIALOG_BUTTON* buttons = nullptr;
-	std::wstring* buttonStrings = nullptr;
-	duk_get_prop_string(ctx, -1, "buttons");
-	if (duk_is_array(ctx, -1)) {
-		int length = duk_get_length(ctx, -1);
-		buttons = new TASKDIALOG_BUTTON[length];
-		buttonStrings = new std::wstring[length];
-
-		for (int i = 0; i < length; i++) {
-			buttonStrings[i] = Utf8ToUtf16(JSGetPropString(ctx, i));
-			buttons[i].nButtonID = 1000 + i;
-			buttons[i].pszButtonText = buttonStrings[i].c_str();
-		}
-
-		tdc.pButtons = buttons;
-		tdc.cButtons = length;
-	}
-	duk_pop(ctx);
-
-	TASKDIALOG_BUTTON* radios = nullptr;
-	std::wstring* radioStrings = nullptr;
-	duk_get_prop_string(ctx, -1, "radioButtons");
-	if (duk_is_array(ctx, -1)) {
-		int length = duk_get_length(ctx, -1);
-		radios = new TASKDIALOG_BUTTON[length];
-		radioStrings = new std::wstring[length];
-
-		for (int i = 0; i < length; i++) {
-			radioStrings[i] = Utf8ToUtf16(JSGetPropString(ctx, i));
-			radios[i].nButtonID = 2000 + i;
-			radios[i].pszButtonText = radioStrings[i].c_str();
-		}
-
-		tdc.pRadioButtons = radios;
-		tdc.cRadioButtons = length;
-	}
-	duk_pop(ctx);
+	_tdc.pszMainIcon = ParseIcon(JSGetPropString(ctx, "icon"));
+	_tdc.pszFooterIcon = ParseIcon(JSGetPropString(ctx, "footerIcon"));
 
 	duk_get_prop_string(ctx, -1, "commonButtons");
 	if (duk_is_array(ctx, -1)) {
 		int length = duk_get_length(ctx, -1);
 
 		for (int i = 0; i < length; i++) {
-			tdc.dwCommonButtons |= ParseCommonButton(JSGetPropString(ctx, i));
+			_tdc.dwCommonButtons |= ParseCommonButton(JSGetPropString(ctx, i));
 		}
 	}
 	duk_pop(ctx);
 
+	duk_get_prop_string(ctx, -1, "buttons");
+	if (duk_is_array(ctx, -1)) {
+		int length = duk_get_length(ctx, -1);
+		_buttons.clear();
+		_buttons.resize(length);
+		_buttonsRuntime = new TASKDIALOG_BUTTON[length];
+
+		for (int i = 0; i < length; i++) {
+			_buttons[i] = Utf8ToUtf16(JSGetPropString(ctx, i));
+			_buttonsRuntime[i].nButtonID = 1000 + i;
+			_buttonsRuntime[i].pszButtonText = _buttons[i].c_str();
+		}
+		_tdc.pButtons = _buttonsRuntime;
+		_tdc.cButtons = length;
+	}
 	duk_pop(ctx);
 
-	hr = TaskDialogIndirect(&tdc, NULL, NULL, NULL);
-	if (buttons) {
-		delete[] buttons;
-		delete[] buttonStrings;
+	duk_get_prop_string(ctx, -1, "radioButtons");
+	if (duk_is_array(ctx, -1)) {
+		int length = duk_get_length(ctx, -1);
+		_radios.clear();
+		_radios.resize(length);
+		_radiosRuntime = new TASKDIALOG_BUTTON[length];
+
+		for (int i = 0; i < length; i++) {
+			_radios[i] = Utf8ToUtf16(JSGetPropString(ctx, i));
+			_buttonsRuntime[i].nButtonID = 2000 + i;
+			_buttonsRuntime[i].pszButtonText = _radios[i].c_str();
+		}
+
+		_tdc.pRadioButtons = _buttonsRuntime;
+		_tdc.cRadioButtons = length;
 	}
-	if (radios) {
-		delete[] radios;
-		delete[] radioStrings;
+	duk_pop(ctx);
+
+	duk_pop(ctx);
+}
+
+
+void NKWinTaskDialog::FreeRuntime() {
+	if (_buttonsRuntime) {
+		delete[] _buttonsRuntime;
+		_buttonsRuntime = 0;
 	}
+
+	if (_radiosRuntime) {
+		delete[] _radiosRuntime;
+		_radiosRuntime = 0;
+	}
+}
+
+duk_ret_t NKWinTaskDialog::Show() {
+	if (_hwnd) {
+		SetForegroundWindow(_hwnd);
+		return 0;
+	}
+
+	HRESULT hr;
+	CreateConfig();
+	hr = TaskDialogIndirect(&_tdc, NULL, NULL, NULL);
+	FreeRuntime();
+
+	if (hr != S_OK) JSThrowWin32Error(ctx, hr, "TaskDialogIndirect");
+
+	return 0;
+}
+
+duk_ret_t NKWinTaskDialog::Navigate() {
+	if (!_hwnd) {
+		return Show();
+	}
+
+	LRESULT result;
+	CreateConfig();
+	result = SendMessage(_hwnd, TDM_NAVIGATE_PAGE, 0, (LPARAM) &_tdc);
+	FreeRuntime();
+
+	if (result != S_OK) JSThrowWin32Error(ctx, result, "SendMessage TDM_NAVIGATE_PAGE");
 
 	return 0;
 }
@@ -177,9 +210,10 @@ duk_ret_t NKWinTaskDialog::PreventClose()
 void NKWinTaskDialog::setupPrototype(duk_context *ctx) {
 	JSEventEmitter::putOnStack(ctx);
 	duk_new(ctx, 0);
-	
-	registerMethod<&NKWinTaskDialog::Show>(ctx, "show", 1);
-	registerMethod<&NKWinTaskDialog::PreventClose>(ctx, "preventClose", 0);
+
+	registerMethod<&Show>(ctx, "show", 1);
+	registerMethod<&Navigate>(ctx, "navigate", 1);
+	registerMethod<&PreventClose>(ctx, "preventClose", 0);
 
 	duk_put_prop_string(ctx, -2, "prototype");
 }
@@ -251,6 +285,8 @@ HRESULT NKWinTaskDialog::callback(HWND handle, UINT notification, WPARAM wParam,
 		break;
 
 	case TDN_DESTROYED:
+		_hwnd = nullptr;
+
 		duk_push_string(ctx, "destroyed");
 		duk_call_method(ctx, 1);
 		duk_pop(ctx);
@@ -264,6 +300,9 @@ HRESULT NKWinTaskDialog::callback(HWND handle, UINT notification, WPARAM wParam,
 		break;
 
 	case TDN_DIALOG_CONSTRUCTED:
+		_hwnd = handle;
+		FreeRuntime();
+
 		duk_push_string(ctx, "dialogConstructed");
 		duk_call_method(ctx, 1);
 		duk_pop(ctx);
