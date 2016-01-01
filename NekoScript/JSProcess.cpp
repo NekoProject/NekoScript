@@ -95,6 +95,11 @@ void JSProcess::setupProperties(duk_context *ctx) {
 	duk_put_prop_string(ctx, -2, "name");
 	duk_put_prop_string(ctx, -2, "pwd");
 
+	duk_push_c_function(ctx, &pwd, 0);
+	duk_push_string(ctx, "process_cwd");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "cwd");
+
 	duk_push_c_function(ctx, &chdir, 1);
 	duk_push_string(ctx, "process_chdir");
 	duk_put_prop_string(ctx, -2, "name");
