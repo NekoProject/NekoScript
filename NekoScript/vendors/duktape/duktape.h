@@ -114,7 +114,7 @@
 #ifndef DUKTAPE_H_INCLUDED
 #define DUKTAPE_H_INCLUDED
 
-#define DUK_SINGLE_FILE
+
 
 /* External duk_config.h provides platform/compiler/OS dependent
  * typedefs and macros, and DUK_USE_xxx config options so that

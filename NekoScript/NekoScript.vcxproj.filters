@@ -45,9 +45,6 @@
     <ClInclude Include="vendors\duktape\duk_config.h">
       <Filter>Vendors\Duktape</Filter>
     </ClInclude>
-    <ClInclude Include="vendors\duktape\duktape.h">
-      <Filter>Vendors\Duktape</Filter>
-    </ClInclude>
     <ClInclude Include="NKWinTaskDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -85,9 +82,6 @@
     </ClCompile>
     <ClCompile Include="NekoScript.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vendors\duktape\duktape.cpp">
-      <Filter>Vendors\Duktape</Filter>
     </ClCompile>
     <ClCompile Include="NKWinTaskDialog.cpp">
       <Filter>Source Files</Filter>
@@ -136,6 +130,279 @@
     </ClCompile>
     <ClCompile Include="ExceptionHandler.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_alloc_default.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_buffer.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_bytecode.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_call.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_codec.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_compile.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_debug.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_heap.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_logging.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_memory.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_object.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_stack.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_string.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_api_var.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_array.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_boolean.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_buffer.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_date.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_date_unix.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_date_windows.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_duktape.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_error.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_function.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_global.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_json.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_logger.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_math.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_number.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_object.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_pointer.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_proxy.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_regexp.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_string.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_thread.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_bi_thrower.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_builtins.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_debug_fixedbuffer.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_debug_heap.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_debug_macros.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_debug_vsnprintf.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_debugger.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_error_augment.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_error_longjmp.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_error_macros.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_error_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_error_throw.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hbuffer_alloc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hbuffer_ops.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hbufferobject_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_alloc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_hashstring.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_markandsweep.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_memory.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_refcount.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_stringcache.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_heap_stringtable.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_alloc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_class.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_enum.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_finalizer.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_pc2line.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_props.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hstring_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hthread_alloc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hthread_builtins.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hthread_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hthread_stacks.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_js_call.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_js_compiler.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_js_executor.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_js_ops.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_js_var.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_lexer.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_numconv.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_regexp_compiler.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_regexp_executor.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_replacements.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_selftest.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_strings.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_tval.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_unicode_support.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_unicode_tables.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_bitdecoder.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_bitencoder.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_bufwriter.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_hashbytes.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_hashprime.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_misc.cpp">
+      <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_util_tinyrandom.cpp">
+      <Filter>Vendors\Duktape</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
