@@ -111,6 +111,48 @@ duk_ret_t NKWinAPI::fromWString(duk_context *ctx) {
 	return 1;
 }
 
+duk_ret_t NKWinAPI::toAString(duk_context *ctx) {
+	const char *str = duk_require_string(ctx, 0);
+
+	JSThrowScope
+	{
+		std::string s = Utf16ToANSI(Utf8ToUtf16(str));
+		unsigned int size = (s.length() + 1) * sizeof(char);
+		duk_push_fixed_buffer(ctx, size);
+		void* buf = duk_get_buffer_data(ctx, -1, nullptr);
+		memcpy(buf, s.c_str(), size);
+	}
+	JSThrowScopeEnd
+
+	return 1;
+}
+
+duk_ret_t NKWinAPI::fromAString(duk_context *ctx) {
+	unsigned int size = 0;
+	void *str = duk_require_buffer_data(ctx, -1, &size);
+
+	JSThrowScope
+	{
+		duk_push_string(ctx, Utf16ToUtf8(ANSIToUtf16(std::string((const char *)str, size))).c_str());
+	}
+	JSThrowScopeEnd
+
+	return 1;
+}
+
+duk_ret_t NKWinAPI::throwError(duk_context *ctx) {
+	unsigned int code;
+	if (duk_is_undefined(ctx, 0)) {
+		code = GetLastError();
+	} else {
+		code = duk_require_uint(ctx, 0);
+	}
+	if (code != 0) {
+		JSThrowWin32Error(ctx, code);
+	}
+	return 0;
+}
+
 void NKWinAPI::setupPrototype(duk_context *ctx) {
 	duk_push_object(ctx);
 	duk_get_prototype(ctx, 0);
@@ -134,4 +176,19 @@ void NKWinAPI::setupPrototype(duk_context *ctx) {
 	duk_push_string(ctx, "NKWinAPI_fromWString");
 	duk_put_prop_string(ctx, -2, "name");
 	duk_put_prop_string(ctx, -2, "fromWString");
+
+	duk_push_c_function(ctx, &toAString, 1);
+	duk_push_string(ctx, "NKWinAPI_toAString");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "toAString");
+
+	duk_push_c_function(ctx, &fromAString, 1);
+	duk_push_string(ctx, "NKWinAPI_fromAString");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "fromAString");
+
+	duk_push_c_function(ctx, &throwError, 1);
+	duk_push_string(ctx, "NKWinAPI_throwError");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "throwError");
 }
