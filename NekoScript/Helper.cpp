@@ -234,9 +234,12 @@ void JSThrowWin32ErrorRaw(const char * filename, duk_int_t line, duk_context *ct
 }
 
 unsigned int DynamicInvokeStdcall(FARPROC proc, int argc, void* argv[]) {
-	void** _argv = (void**)alloca(argc * 4);
-	memcpy(_argv, argv, argc * 4);
-	delete[] argv;
+	void** _argv = nullptr;
+	if (argc > 0) {
+		_argv = (void**)alloca(argc * 4);
+		memcpy(_argv, argv, argc * 4);
+		delete[] argv;
+	}
 
 	int retv = 0;
 	FARPROC _proc = proc;
@@ -249,11 +252,15 @@ unsigned int DynamicInvokeStdcall(FARPROC proc, int argc, void* argv[]) {
 
 		mov ebx, _argv
 		mov ecx, _argc
+		cmp ecx, 0
+		je after
+
 	again:
 		push [ebx]
 		add ebx, 4
 		loop again
 
+	after:
 		mov eax, _proc
 		call eax
 
@@ -266,9 +273,12 @@ unsigned int DynamicInvokeStdcall(FARPROC proc, int argc, void* argv[]) {
 }
 
 unsigned int DynamicInvokeCdecl(void *proc, int argc, void* argv[]) {
-	void** _argv = (void**)alloca(argc * 4);
-	memcpy(_argv, argv, argc * 4);
-	delete[] argv;
+	void** _argv = nullptr;
+	if (argc > 0) {
+		_argv = (void**)alloca(argc * 4);
+		memcpy(_argv, argv, argc * 4);
+		delete[] argv;
+	}
 
 	int retv = 0;
 	void *_proc = proc;
@@ -282,11 +292,15 @@ unsigned int DynamicInvokeCdecl(void *proc, int argc, void* argv[]) {
 
 		mov ebx, _argv
 		mov ecx, _argc
+		cmp ecx, 0
+		je after
+
 	again:
 		push [ebx]
 		add ebx, 4
 		loop again
 
+	after:
 		mov eax, _proc
 		call eax
 		add esp, _off

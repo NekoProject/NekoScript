@@ -55,7 +55,9 @@ NKWinAPI* NKWinAPI::tryConstruct(duk_context *ctx, void *ptr) {
 duk_ret_t NKWinAPI::Call() {
 	int count = duk_get_top(ctx);
 
-	void** args = new void*[count];
+	void** args = nullptr;
+	if (count > 0)
+		args = new void*[count];
 	void** p = args + count;
 	for (int i = 0; i < count; i ++) {
 		void* value = 0;
@@ -80,12 +82,41 @@ duk_ret_t NKWinAPI::Call() {
 	return 1;
 }
 
+duk_ret_t NKWinAPI::toWString(duk_context *ctx) {
+	const char *str = duk_require_string(ctx, 0);
+
+	JSThrowScope
+	{
+		std::wstring s = Utf8ToUtf16(str);
+		unsigned int size = (s.length() + 1) * sizeof(wchar_t);
+		duk_push_fixed_buffer(ctx, size);
+		void* buf = duk_get_buffer_data(ctx, -1, nullptr); 
+		memcpy(buf, s.c_str(), size);
+	}
+	JSThrowScopeEnd
+
+	return 1;
+}
+
+duk_ret_t NKWinAPI::fromWString(duk_context *ctx) {
+	unsigned int size = 0;
+	void *str = duk_require_buffer_data(ctx, -1, &size);
+
+	JSThrowScope
+	{
+		duk_push_string(ctx, Utf16ToUtf8(std::wstring((const wchar_t *)str, size)).c_str());
+	}
+	JSThrowScopeEnd
+
+	return 1;
+}
+
 void NKWinAPI::setupPrototype(duk_context *ctx) {
 	duk_push_object(ctx);
 	duk_get_prototype(ctx, 0);
 	duk_set_prototype(ctx, -2);
 
-	registerMethod<&NKWinAPI::Call>(ctx, "call2", DUK_VARARGS);
+	//registerMethod<&NKWinAPI::Call>(ctx, "call2", DUK_VARARGS);
 
 	duk_push_global_stash(ctx);
 	duk_dup(ctx, -2);
@@ -93,4 +124,14 @@ void NKWinAPI::setupPrototype(duk_context *ctx) {
 	duk_pop(ctx);
 
 	duk_put_prop_string(ctx, -2, "prototype");
+
+	duk_push_c_function(ctx, &toWString, 1);
+	duk_push_string(ctx, "NKWinAPI_toWString");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "toWString");
+
+	duk_push_c_function(ctx, &fromWString, 1);
+	duk_push_string(ctx, "NKWinAPI_fromWString");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "fromWString");
 }

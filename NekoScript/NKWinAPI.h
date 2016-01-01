@@ -21,4 +21,9 @@ public:
 	static void constructorExtra(duk_context *ctx, NKWinAPI* self);
 	static NKWinAPI* tryConstruct(duk_context *ctx, void *ptr);
 	static void setupPrototype(duk_context *ctx);
+
+	static duk_ret_t toWString(duk_context *ctx);
+	static duk_ret_t fromWString(duk_context *ctx);
+	static duk_ret_t toAString(duk_context *ctx);
+	static duk_ret_t fromAString(duk_context *ctx);
 };
