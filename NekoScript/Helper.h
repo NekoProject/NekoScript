@@ -91,9 +91,9 @@ public:
 	}
 };
 
-#define JSThrowScope JSThrowScope_t *__throw_scope = JSThrowScope_t::create(ctx); do
-#define JSThrowScopeEnd while (0); __throw_scope_exit: JSThrowScope_t::invoke(__throw_scope);
-#define JSThrowScopeBreak goto __throw_scope_exit
+#define JSThrowScope JSThrowScope_t *__throw_scope = JSThrowScope_t::create(ctx); auto __throw_lambda = [&]()
+#define JSThrowScopeEnd ; __throw_lambda(); JSThrowScope_t::invoke(__throw_scope);
+#define JSThrowScopeBreak return;
 
 #define JSThrowScopeWin32Error(code, func) \
 	do { \
