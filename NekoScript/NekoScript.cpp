@@ -14,6 +14,17 @@
 duk_context *CreateDuktapeContext() {
 	duk_context *ctx = duk_create_heap_default();
 
+	duk_push_global_object(ctx);
+	duk_push_string(ctx, "global");
+	duk_push_global_object(ctx);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_VALUE |
+		DUK_DEFPROP_HAVE_WRITABLE | 0 |
+		DUK_DEFPROP_HAVE_ENUMERABLE | 0 |
+		DUK_DEFPROP_HAVE_CONFIGURABLE | 0 |
+		DUK_DEFPROP_FORCE);
+	duk_pop(ctx);
+	_ASSERTE(duk_get_top(ctx) == 0);
+
 	JSEngineExtra::setup(ctx);
 	JSProcess::setup(ctx);
 	JSFileSystem::setup(ctx);
