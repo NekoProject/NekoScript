@@ -235,6 +235,9 @@ HRESULT NKWinTaskDialog::callback(HWND handle, UINT notification, WPARAM wParam,
 	switch (notification)
 	{
 	case TDN_CREATED:
+		SendMessage(handle, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1)));
+		SendMessage(handle, WM_SETICON, ICON_SMALL, (LPARAM)LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1)));
+
 		duk_push_string(ctx, "created");
 		duk_call_method(ctx, 1);
 		duk_pop(ctx);
