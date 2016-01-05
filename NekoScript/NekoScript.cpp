@@ -8,12 +8,11 @@
 #include "JSFileSystem.h"
 #include "JSEventEmitter.h"
 #include "NKWinAPI.h"
+#include "NKWinVersionInfo.h"
 #include "NKWinTaskDialog.h"
 #include <lzma\CPP\Common\CommandLineParser.h>
 
-duk_context *CreateDuktapeContext() {
-	duk_context *ctx = duk_create_heap_default();
-
+duk_ret_t InitDuktapeContext(duk_context *ctx) {
 	duk_push_global_object(ctx);
 	duk_push_string(ctx, "global");
 	duk_push_global_object(ctx);
@@ -29,13 +28,14 @@ duk_context *CreateDuktapeContext() {
 	JSProcess::setup(ctx);
 	JSFileSystem::setup(ctx);
 	NKWinAPI::setup(ctx); duk_put_global_string(ctx, "NKWinAPI");
+	NKWinVersionInfo::setup(ctx); duk_put_global_string(ctx, "NKWinVersionInfo");
 
 #ifndef NEKO_MINIMAL
 	JSEventEmitter::setup(ctx);
 	NKWinTaskDialog::setup(ctx); duk_put_global_string(ctx, "NKWinTaskDialog");
 #endif
 
-	return ctx;
+	return 0;
 }
 
 void ShowConsole() {
@@ -57,6 +57,17 @@ void Fail(std::wstring title, std::wstring content) {
 	} else {
 		TaskDialog(NULL, NULL, L"NekoScript", title.c_str(), content.c_str(), TDCBF_CANCEL_BUTTON, TD_ERROR_ICON, NULL);
 	}
+}
+
+duk_context *CreateDuktapeContext() {
+	duk_context *ctx = duk_create_heap_default();
+	if (duk_safe_call(ctx, InitDuktapeContext, 0, 1) != DUK_EXEC_SUCCESS) {
+		Fail(L"Initialization Failure", Utf8ToUtf16(std::string(duk_safe_to_string(ctx, -1))));
+		abort();
+	}
+	duk_pop(ctx);
+
+	return ctx;
 }
 
 int AppMain() {

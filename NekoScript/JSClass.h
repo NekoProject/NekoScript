@@ -34,6 +34,38 @@ protected:
 		duk_put_prop_string(ctx, -2, name);
 	}
 
+	template<PFunc func>
+	static void registerProperty(duk_context *ctx, char* name) {
+		duk_push_string(ctx, name);
+
+		duk_push_c_function(ctx, instanceMethodWrapper<func>, 0);
+		duk_push_string(ctx, (std::string(typeid(T).name() + 6) + "_" + name + "_get").c_str());
+		duk_put_prop_string(ctx, -2, "name");
+
+		duk_def_prop(ctx, -3, DUK_DEFPROP_HAVE_GETTER |
+			DUK_DEFPROP_HAVE_ENUMERABLE | 0 |
+			DUK_DEFPROP_HAVE_CONFIGURABLE | 0 |
+			DUK_DEFPROP_FORCE);
+	}
+
+	template<PFunc func, PFunc funcSetter>
+	static void registerProperty(duk_context *ctx, char* name) {
+		duk_push_string(ctx, name);
+
+		duk_push_c_function(ctx, instanceMethodWrapper<func>, 0);
+		duk_push_string(ctx, (std::string(typeid(T).name() + 6) + "_" + name + "_get").c_str());
+		duk_put_prop_string(ctx, -2, "name");
+
+		duk_push_c_function(ctx, instanceMethodWrapper<funcSetter>, 1);
+		duk_push_string(ctx, (std::string(typeid(T).name() + 6) + "_" + name + "_set").c_str());
+		duk_put_prop_string(ctx, -2, "name");
+
+		duk_def_prop(ctx, -4, DUK_DEFPROP_HAVE_GETTER | DUK_DEFPROP_HAVE_SETTER |
+			DUK_DEFPROP_HAVE_ENUMERABLE | 0 |
+			DUK_DEFPROP_HAVE_CONFIGURABLE | 0 |
+			DUK_DEFPROP_FORCE);
+	}
+
 	static duk_ret_t constructorFunctionCall(duk_context *ctx) {
 		return DUK_RET_TYPE_ERROR;
 	}

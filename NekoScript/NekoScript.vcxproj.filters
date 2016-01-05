@@ -75,6 +75,9 @@
     <ClInclude Include="ExceptionHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NKWinVersionInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -403,6 +406,9 @@
     </ClCompile>
     <ClCompile Include="vendors\duktape\duk_util_tinyrandom.cpp">
       <Filter>Vendors\Duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="NKWinVersionInfo.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
