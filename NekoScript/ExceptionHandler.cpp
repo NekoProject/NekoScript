@@ -2,6 +2,7 @@
 #include "ExceptionHandler.h"
 #include "Helper.h"
 #include <StackWalker\StackWalker.h>
+#include <iterator>
 
 // https://blogs.msdn.microsoft.com/oldnewthing/20100730-00/?p=13273/
 #define CXX_EXCEPTION_MAGIC 0xE06D7363
