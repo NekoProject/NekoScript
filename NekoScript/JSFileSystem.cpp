@@ -91,6 +91,25 @@ duk_ret_t JSFileSystem::writeFileSync(duk_context *ctx) {
 	return 0;
 }
 
+duk_ret_t JSFileSystem::unlinkSync(duk_context *ctx) {
+	const char* fn = duk_safe_to_string(ctx, 0);
+	bool answer = DeleteFileA(fn);
+	if (!answer)
+		duk_error(ctx, DUK_ERR_API_ERROR, "Can't delete file: %s", fn);
+	return 0;
+}
+
+duk_ret_t JSFileSystem::renameSync(duk_context* ctx) {
+	const char* old_fn = duk_safe_to_string(ctx, 0);
+	const char* new_fn = duk_safe_to_string(ctx, 1);
+	bool answer = MoveFileA(old_fn, new_fn);
+	if (!answer)
+		duk_error(ctx, DUK_ERR_API_ERROR, "Can't move file: %s to %s", old_fn, new_fn);
+	return 0;
+}
+
+
+
 void JSFileSystem::setup(duk_context *ctx) {
 	duk_push_object(ctx);
 	
@@ -113,6 +132,16 @@ void JSFileSystem::setup(duk_context *ctx) {
 	duk_push_string(ctx, "fs_writeFileSync");
 	duk_put_prop_string(ctx, -2, "name");
 	duk_put_prop_string(ctx, -2, "writeFileSync");
+
+	duk_push_c_function(ctx, &unlinkSync, 1);
+	duk_push_string(ctx, "fs_unlinkSync");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "unlinkSync");
+
+	duk_push_c_function(ctx, &renameSync, 2);
+	duk_push_string(ctx, "fs_renameSync");
+	duk_put_prop_string(ctx, -2, "name");
+	duk_put_prop_string(ctx, -2, "renameSync");
 
 	duk_put_global_string(ctx, "fs");
 }

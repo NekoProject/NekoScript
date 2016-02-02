@@ -12,6 +12,8 @@ public:
 	static duk_ret_t existsSync(duk_context *ctx);
 	static duk_ret_t readFileSync(duk_context *ctx);
 	static duk_ret_t writeFileSync(duk_context *ctx);
+	static duk_ret_t unlinkSync(duk_context *ctx);
+	static duk_ret_t renameSync(duk_context *ctx);
 
 	static void setup(duk_context *ctx);
 };
