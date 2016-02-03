@@ -136,7 +136,7 @@ DUK_LOCAL void duk__bi_copy(duk__bigint *x, duk__bigint *y) {
 	if (n == 0) {
 		return;
 	}
-	DUK_MEMCPY((void *) x->v, (void *) y->v, (size_t) (sizeof(duk_uint32_t) * n));
+	DUK_MEMCPY((void *) x->v, (const void *) y->v, (size_t) (sizeof(duk_uint32_t) * n));
 }
 
 DUK_LOCAL void duk__bi_set_small(duk__bigint *x, duk_uint32_t v) {
@@ -698,7 +698,7 @@ DUK_LOCAL duk_size_t duk__dragon4_format_uint32(duk_uint8_t *buf, duk_uint32_t x
 	}
 	len = (duk_size_t) ((buf + 32) - p);
 
-	DUK_MEMMOVE((void *) buf, (void *) p, (size_t) len);
+	DUK_MEMMOVE((void *) buf, (const void *) p, (size_t) len);
 
 	return len;
 }
@@ -1167,7 +1167,7 @@ DUK_LOCAL duk_small_int_t duk__dragon4_fixed_format_round(duk__numconv_stringify
 			if (p == &nc_ctx->digits[0]) {
 				DUK_DDD(DUK_DDDPRINT("carry propagated to first digit -> special case handling"));
 				DUK_MEMMOVE((void *) (&nc_ctx->digits[1]),
-				            (void *) (&nc_ctx->digits[0]),
+				            (const void *) (&nc_ctx->digits[0]),
 				            (size_t) (sizeof(char) * nc_ctx->count));
 				nc_ctx->digits[0] = 1;  /* don't increase 'count' */
 				nc_ctx->k++;  /* position of highest digit changed */
@@ -1183,7 +1183,7 @@ DUK_LOCAL duk_small_int_t duk__dragon4_fixed_format_round(duk__numconv_stringify
 			DUK_DDD(DUK_DDDPRINT("digit before carry: %ld", (long) t));
 			if (++t < nc_ctx->B) {
 				DUK_DDD(DUK_DDDPRINT("rounding carry terminated"));
-				*p = t;
+				*p = (duk_uint8_t) t;
 				break;
 			}
 
@@ -1938,7 +1938,7 @@ DUK_INTERNAL void duk_numconv_parse(duk_context *ctx, duk_small_int_t radix, duk
 
 		DUK_DDD(DUK_DDDPRINT("parse digits: p=%p, ch='%c' (%ld), expt=%ld, expt_adj=%ld, "
 		                     "dig_whole=%ld, dig_frac=%ld, dig_expt=%ld, dig_lzero=%ld, dig_prec=%ld",
-		                     (void *) p, (int) ((ch >= 0x20 && ch <= 0x7e) ? ch : '?'), (long) ch,
+		                     (const void *) p, (int) ((ch >= 0x20 && ch <= 0x7e) ? ch : '?'), (long) ch,
 		                     (long) expt, (long) expt_adj, (long) dig_whole, (long) dig_frac,
 		                     (long) dig_expt, (long) dig_lzero, (long) dig_prec));
 		DUK__BI_PRINT("f", &nc_ctx->f);

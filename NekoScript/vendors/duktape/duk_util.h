@@ -463,9 +463,17 @@ struct duk_bufwriter_ctx {
  */
 
 #if !defined(DUK_SINGLE_FILE)
-DUK_INTERNAL_DECL duk_uint8_t duk_lc_digits[36];
-DUK_INTERNAL_DECL duk_uint8_t duk_uc_nybbles[16];
-DUK_INTERNAL_DECL duk_int8_t duk_hex_dectab[256];
+DUK_INTERNAL_DECL const duk_uint8_t duk_lc_digits[36];
+DUK_INTERNAL_DECL const duk_uint8_t duk_uc_nybbles[16];
+DUK_INTERNAL_DECL const duk_int8_t duk_hex_dectab[256];
+#if defined(DUK_USE_HEX_FASTPATH)
+DUK_INTERNAL_DECL const duk_int16_t duk_hex_dectab_shift4[256];
+DUK_INTERNAL_DECL const duk_uint16_t duk_hex_enctab[256];
+#endif
+#if defined(DUK_USE_BASE64_FASTPATH)
+DUK_INTERNAL_DECL const duk_uint8_t duk_base64_enctab[64];
+DUK_INTERNAL_DECL const duk_int8_t duk_base64_dectab[256];
+#endif
 #endif  /* !DUK_SINGLE_FILE */
 
 /* Note: assumes that duk_util_probe_steps size is 32 */
@@ -475,7 +483,9 @@ DUK_INTERNAL_DECL duk_uint8_t duk_util_probe_steps[32];
 #endif  /* !DUK_SINGLE_FILE */
 #endif
 
+#if defined(DUK_USE_STRHASH_DENSE)
 DUK_INTERNAL_DECL duk_uint32_t duk_util_hashbytes(const duk_uint8_t *data, duk_size_t len, duk_uint32_t seed);
+#endif
 
 #if defined(DUK_USE_HOBJECT_HASH_PART) || defined(DUK_USE_STRTAB_PROBE)
 DUK_INTERNAL_DECL duk_uint32_t duk_util_get_hash_prime(duk_uint32_t size);

@@ -405,11 +405,11 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_STRIDX_TRY                                                389                            /* 'try' */
 #define DUK_STRIDX_TYPEOF                                             390                            /* 'typeof' */
 #define DUK_STRIDX_VAR                                                391                            /* 'var' */
-#define DUK_STRIDX_VOID                                               392                            /* 'void' */
-#define DUK_STRIDX_WHILE                                              393                            /* 'while' */
-#define DUK_STRIDX_WITH                                               394                            /* 'with' */
-#define DUK_STRIDX_CLASS                                              395                            /* 'class' */
-#define DUK_STRIDX_CONST                                              396                            /* 'const' */
+#define DUK_STRIDX_CONST                                              392                            /* 'const' */
+#define DUK_STRIDX_VOID                                               393                            /* 'void' */
+#define DUK_STRIDX_WHILE                                              394                            /* 'while' */
+#define DUK_STRIDX_WITH                                               395                            /* 'with' */
+#define DUK_STRIDX_CLASS                                              396                            /* 'class' */
 #define DUK_STRIDX_ENUM                                               397                            /* 'enum' */
 #define DUK_STRIDX_EXPORT                                             398                            /* 'export' */
 #define DUK_STRIDX_EXTENDS                                            399                            /* 'extends' */
@@ -1212,6 +1212,8 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_HTHREAD_STRING_TYPEOF(thr)                                DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_TYPEOF)
 #define DUK_HEAP_STRING_VAR(heap)                                     DUK_HEAP_GET_STRING((heap),DUK_STRIDX_VAR)
 #define DUK_HTHREAD_STRING_VAR(thr)                                   DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_VAR)
+#define DUK_HEAP_STRING_CONST(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CONST)
+#define DUK_HTHREAD_STRING_CONST(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CONST)
 #define DUK_HEAP_STRING_VOID(heap)                                    DUK_HEAP_GET_STRING((heap),DUK_STRIDX_VOID)
 #define DUK_HTHREAD_STRING_VOID(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_VOID)
 #define DUK_HEAP_STRING_WHILE(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_WHILE)
@@ -1220,8 +1222,6 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_HTHREAD_STRING_WITH(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_WITH)
 #define DUK_HEAP_STRING_CLASS(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CLASS)
 #define DUK_HTHREAD_STRING_CLASS(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CLASS)
-#define DUK_HEAP_STRING_CONST(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CONST)
-#define DUK_HTHREAD_STRING_CONST(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CONST)
 #define DUK_HEAP_STRING_ENUM(heap)                                    DUK_HEAP_GET_STRING((heap),DUK_STRIDX_ENUM)
 #define DUK_HTHREAD_STRING_ENUM(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_ENUM)
 #define DUK_HEAP_STRING_EXPORT(heap)                                  DUK_HEAP_GET_STRING((heap),DUK_STRIDX_EXPORT)
@@ -1264,14 +1264,14 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_STRIDX_END_RESERVED                                       414                            /* exclusive endpoint */
 
 #if !defined(DUK_SINGLE_FILE)
-DUK_INTERNAL_DECL const duk_c_function duk_bi_native_functions[147];
-DUK_INTERNAL_DECL const duk_uint8_t duk_builtins_data[1952];
+DUK_INTERNAL_DECL const duk_c_function duk_bi_native_functions[149];
+DUK_INTERNAL_DECL const duk_uint8_t duk_builtins_data[1955];
 #ifdef DUK_USE_BUILTIN_INITJS
 DUK_INTERNAL_DECL const duk_uint8_t duk_initjs_data[187];
 #endif  /* DUK_USE_BUILTIN_INITJS */
 #endif  /* !DUK_SINGLE_FILE */
 
-#define DUK_BUILTINS_DATA_LENGTH                                      1952
+#define DUK_BUILTINS_DATA_LENGTH                                      1955
 #ifdef DUK_USE_BUILTIN_INITJS
 #define DUK_BUILTIN_INITJS_DATA_LENGTH                                187
 #endif  /* DUK_USE_BUILTIN_INITJS */
@@ -1750,11 +1750,11 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_STRIDX_TRY                                                389                            /* 'try' */
 #define DUK_STRIDX_TYPEOF                                             390                            /* 'typeof' */
 #define DUK_STRIDX_VAR                                                391                            /* 'var' */
-#define DUK_STRIDX_VOID                                               392                            /* 'void' */
-#define DUK_STRIDX_WHILE                                              393                            /* 'while' */
-#define DUK_STRIDX_WITH                                               394                            /* 'with' */
-#define DUK_STRIDX_CLASS                                              395                            /* 'class' */
-#define DUK_STRIDX_CONST                                              396                            /* 'const' */
+#define DUK_STRIDX_CONST                                              392                            /* 'const' */
+#define DUK_STRIDX_VOID                                               393                            /* 'void' */
+#define DUK_STRIDX_WHILE                                              394                            /* 'while' */
+#define DUK_STRIDX_WITH                                               395                            /* 'with' */
+#define DUK_STRIDX_CLASS                                              396                            /* 'class' */
 #define DUK_STRIDX_ENUM                                               397                            /* 'enum' */
 #define DUK_STRIDX_EXPORT                                             398                            /* 'export' */
 #define DUK_STRIDX_EXTENDS                                            399                            /* 'extends' */
@@ -2557,6 +2557,8 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_HTHREAD_STRING_TYPEOF(thr)                                DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_TYPEOF)
 #define DUK_HEAP_STRING_VAR(heap)                                     DUK_HEAP_GET_STRING((heap),DUK_STRIDX_VAR)
 #define DUK_HTHREAD_STRING_VAR(thr)                                   DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_VAR)
+#define DUK_HEAP_STRING_CONST(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CONST)
+#define DUK_HTHREAD_STRING_CONST(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CONST)
 #define DUK_HEAP_STRING_VOID(heap)                                    DUK_HEAP_GET_STRING((heap),DUK_STRIDX_VOID)
 #define DUK_HTHREAD_STRING_VOID(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_VOID)
 #define DUK_HEAP_STRING_WHILE(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_WHILE)
@@ -2565,8 +2567,6 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_HTHREAD_STRING_WITH(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_WITH)
 #define DUK_HEAP_STRING_CLASS(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CLASS)
 #define DUK_HTHREAD_STRING_CLASS(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CLASS)
-#define DUK_HEAP_STRING_CONST(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CONST)
-#define DUK_HTHREAD_STRING_CONST(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CONST)
 #define DUK_HEAP_STRING_ENUM(heap)                                    DUK_HEAP_GET_STRING((heap),DUK_STRIDX_ENUM)
 #define DUK_HTHREAD_STRING_ENUM(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_ENUM)
 #define DUK_HEAP_STRING_EXPORT(heap)                                  DUK_HEAP_GET_STRING((heap),DUK_STRIDX_EXPORT)
@@ -2609,14 +2609,14 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_STRIDX_END_RESERVED                                       414                            /* exclusive endpoint */
 
 #if !defined(DUK_SINGLE_FILE)
-DUK_INTERNAL_DECL const duk_c_function duk_bi_native_functions[147];
-DUK_INTERNAL_DECL const duk_uint8_t duk_builtins_data[1952];
+DUK_INTERNAL_DECL const duk_c_function duk_bi_native_functions[149];
+DUK_INTERNAL_DECL const duk_uint8_t duk_builtins_data[1955];
 #ifdef DUK_USE_BUILTIN_INITJS
 DUK_INTERNAL_DECL const duk_uint8_t duk_initjs_data[187];
 #endif  /* DUK_USE_BUILTIN_INITJS */
 #endif  /* !DUK_SINGLE_FILE */
 
-#define DUK_BUILTINS_DATA_LENGTH                                      1952
+#define DUK_BUILTINS_DATA_LENGTH                                      1955
 #ifdef DUK_USE_BUILTIN_INITJS
 #define DUK_BUILTIN_INITJS_DATA_LENGTH                                187
 #endif  /* DUK_USE_BUILTIN_INITJS */
@@ -3095,11 +3095,11 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_STRIDX_TRY                                                389                            /* 'try' */
 #define DUK_STRIDX_TYPEOF                                             390                            /* 'typeof' */
 #define DUK_STRIDX_VAR                                                391                            /* 'var' */
-#define DUK_STRIDX_VOID                                               392                            /* 'void' */
-#define DUK_STRIDX_WHILE                                              393                            /* 'while' */
-#define DUK_STRIDX_WITH                                               394                            /* 'with' */
-#define DUK_STRIDX_CLASS                                              395                            /* 'class' */
-#define DUK_STRIDX_CONST                                              396                            /* 'const' */
+#define DUK_STRIDX_CONST                                              392                            /* 'const' */
+#define DUK_STRIDX_VOID                                               393                            /* 'void' */
+#define DUK_STRIDX_WHILE                                              394                            /* 'while' */
+#define DUK_STRIDX_WITH                                               395                            /* 'with' */
+#define DUK_STRIDX_CLASS                                              396                            /* 'class' */
 #define DUK_STRIDX_ENUM                                               397                            /* 'enum' */
 #define DUK_STRIDX_EXPORT                                             398                            /* 'export' */
 #define DUK_STRIDX_EXTENDS                                            399                            /* 'extends' */
@@ -3902,6 +3902,8 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_HTHREAD_STRING_TYPEOF(thr)                                DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_TYPEOF)
 #define DUK_HEAP_STRING_VAR(heap)                                     DUK_HEAP_GET_STRING((heap),DUK_STRIDX_VAR)
 #define DUK_HTHREAD_STRING_VAR(thr)                                   DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_VAR)
+#define DUK_HEAP_STRING_CONST(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CONST)
+#define DUK_HTHREAD_STRING_CONST(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CONST)
 #define DUK_HEAP_STRING_VOID(heap)                                    DUK_HEAP_GET_STRING((heap),DUK_STRIDX_VOID)
 #define DUK_HTHREAD_STRING_VOID(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_VOID)
 #define DUK_HEAP_STRING_WHILE(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_WHILE)
@@ -3910,8 +3912,6 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_HTHREAD_STRING_WITH(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_WITH)
 #define DUK_HEAP_STRING_CLASS(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CLASS)
 #define DUK_HTHREAD_STRING_CLASS(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CLASS)
-#define DUK_HEAP_STRING_CONST(heap)                                   DUK_HEAP_GET_STRING((heap),DUK_STRIDX_CONST)
-#define DUK_HTHREAD_STRING_CONST(thr)                                 DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_CONST)
 #define DUK_HEAP_STRING_ENUM(heap)                                    DUK_HEAP_GET_STRING((heap),DUK_STRIDX_ENUM)
 #define DUK_HTHREAD_STRING_ENUM(thr)                                  DUK_HTHREAD_GET_STRING((thr),DUK_STRIDX_ENUM)
 #define DUK_HEAP_STRING_EXPORT(heap)                                  DUK_HEAP_GET_STRING((heap),DUK_STRIDX_EXPORT)
@@ -3954,14 +3954,14 @@ DUK_INTERNAL_DECL const duk_uint8_t duk_strings_data[2624];
 #define DUK_STRIDX_END_RESERVED                                       414                            /* exclusive endpoint */
 
 #if !defined(DUK_SINGLE_FILE)
-DUK_INTERNAL_DECL const duk_c_function duk_bi_native_functions[147];
-DUK_INTERNAL_DECL const duk_uint8_t duk_builtins_data[1952];
+DUK_INTERNAL_DECL const duk_c_function duk_bi_native_functions[149];
+DUK_INTERNAL_DECL const duk_uint8_t duk_builtins_data[1955];
 #ifdef DUK_USE_BUILTIN_INITJS
 DUK_INTERNAL_DECL const duk_uint8_t duk_initjs_data[187];
 #endif  /* DUK_USE_BUILTIN_INITJS */
 #endif  /* !DUK_SINGLE_FILE */
 
-#define DUK_BUILTINS_DATA_LENGTH                                      1952
+#define DUK_BUILTINS_DATA_LENGTH                                      1955
 #ifdef DUK_USE_BUILTIN_INITJS
 #define DUK_BUILTIN_INITJS_DATA_LENGTH                                187
 #endif  /* DUK_USE_BUILTIN_INITJS */

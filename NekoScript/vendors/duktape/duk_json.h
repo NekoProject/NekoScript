@@ -17,10 +17,8 @@
 /* How much stack to require on entry to object/array decode */
 #define DUK_JSON_DEC_REQSTACK                 32
 
-/* How large a loop detection stack to use for fast path */
-#if defined(DUK_USE_JSON_STRINGIFY_FASTPATH)
+/* How large a loop detection stack to use */
 #define DUK_JSON_ENC_LOOPARRAY                64
-#endif
 
 /* Encoding state.  Heap object references are all borrowed. */
 typedef struct {
@@ -28,7 +26,6 @@ typedef struct {
 	duk_bufwriter_ctx bw;        /* output bufwriter */
 	duk_hobject *h_replacer;     /* replacer function */
 	duk_hstring *h_gap;          /* gap (if empty string, NULL) */
-	duk_hstring *h_indent;       /* current indent (if gap is NULL, this is NULL) */
 	duk_idx_t idx_proplist;      /* explicit PropertyList */
 	duk_idx_t idx_loop;          /* valstack index of loop detection object */
 	duk_small_uint_t flags;
@@ -37,6 +34,7 @@ typedef struct {
 #if defined(DUK_USE_JX) || defined(DUK_USE_JC)
 	duk_small_uint_t flag_ext_custom;
 	duk_small_uint_t flag_ext_compatible;
+	duk_small_uint_t flag_ext_custom_or_compatible;
 #endif
 	duk_int_t recursion_depth;
 	duk_int_t recursion_limit;
@@ -48,9 +46,7 @@ typedef struct {
 	duk_small_uint_t stridx_custom_posinf;
 	duk_small_uint_t stridx_custom_function;
 #endif
-#if defined(DUK_USE_JSON_STRINGIFY_FASTPATH)
 	duk_hobject *visiting[DUK_JSON_ENC_LOOPARRAY];  /* indexed by recursion_depth */
-#endif
 } duk_json_enc_ctx;
 
 typedef struct {
@@ -63,6 +59,7 @@ typedef struct {
 #if defined(DUK_USE_JX) || defined(DUK_USE_JC)
 	duk_small_uint_t flag_ext_custom;
 	duk_small_uint_t flag_ext_compatible;
+	duk_small_uint_t flag_ext_custom_or_compatible;
 #endif
 	duk_int_t recursion_depth;
 	duk_int_t recursion_limit;

@@ -248,7 +248,7 @@ DUK_LOCAL void duk__compute_a_stats(duk_hthread *thr, duk_hobject *obj, duk_uint
 	a = DUK_HOBJECT_A_GET_BASE(thr->heap, obj);
 	for (i = 0; i < DUK_HOBJECT_GET_ASIZE(obj); i++) {
 		duk_tval *tv = a++;
-		if (!DUK_TVAL_IS_UNDEFINED_UNUSED(tv)) {
+		if (!DUK_TVAL_IS_UNUSED(tv)) {
 			used++;
 			highest_idx = i;
 		}
@@ -679,7 +679,7 @@ void duk__realloc_props(duk_hthread *thr,
 			DUK_ASSERT(DUK_HOBJECT_GET_PROPS(thr->heap, obj) != NULL);
 
 			tv1 = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, i);
-			if (DUK_TVAL_IS_UNDEFINED_UNUSED(tv1)) {
+			if (DUK_TVAL_IS_UNUSED(tv1)) {
 				continue;
 			}
 
@@ -771,7 +771,7 @@ void duk__realloc_props(duk_hthread *thr,
 		/* fill new entries with -unused- (required, gc reachable) */
 		for (i = DUK_HOBJECT_GET_ASIZE(obj); i < new_a_size; i++) {
 			duk_tval *tv = &new_a[i];
-			DUK_TVAL_SET_UNDEFINED_UNUSED(tv);
+			DUK_TVAL_SET_UNUSED(tv);
 		}
 	} else {
 #ifdef DUK_USE_ASSERTIONS
@@ -782,7 +782,7 @@ void duk__realloc_props(duk_hthread *thr,
 				tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, i);
 
 				/* current assertion is quite strong: decref's and set to unused */
-				DUK_ASSERT(DUK_TVAL_IS_UNDEFINED_UNUSED(tv));
+				DUK_ASSERT(DUK_TVAL_IS_UNUSED(tv));
 			}
 		}
 #endif
@@ -925,7 +925,7 @@ void duk__realloc_props(duk_hthread *thr,
 		i--;
 		DUK_ASSERT(new_e_k != NULL);
 		DUK_ASSERT(new_e_k[i] != NULL);
-		DUK_HSTRING_DECREF(thr, new_e_k[i]);
+		DUK_HSTRING_DECREF(thr, new_e_k[i]);  /* side effects */
 	}
 
 #ifdef DUK_USE_MARK_AND_SWEEP
@@ -1332,8 +1332,6 @@ DUK_INTERNAL duk_bool_t duk_hobject_get_internal_value(duk_heap *heap, duk_hobje
 	DUK_ASSERT(obj != NULL);
 	DUK_ASSERT(tv_out != NULL);
 
-	DUK_TVAL_SET_UNDEFINED_UNUSED(tv_out);
-
 	/* always in entry part, no need to look up parents etc */
 	duk_hobject_find_existing_entry(heap, obj, DUK_HEAP_STRING_INT_VALUE(heap), &e_idx, &h_idx);
 	if (e_idx >= 0) {
@@ -1341,6 +1339,7 @@ DUK_INTERNAL duk_bool_t duk_hobject_get_internal_value(duk_heap *heap, duk_hobje
 		DUK_TVAL_SET_TVAL(tv_out, DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(heap, obj, e_idx));
 		return 1;
 	}
+	DUK_TVAL_SET_UNDEFINED(tv_out);
 	return 0;
 }
 
@@ -1349,6 +1348,11 @@ DUK_INTERNAL duk_hstring *duk_hobject_get_internal_value_string(duk_heap *heap, 
 
 	DUK_ASSERT(heap != NULL);
 	DUK_ASSERT(obj != NULL);
+
+	/* This is not strictly necessary, but avoids compiler warnings; e.g.
+	 * gcc won't reliably detect that no uninitialized data is read below.
+	 */
+	DUK_MEMZERO((void *) &tv, sizeof(duk_tval));
 
 	if (duk_hobject_get_internal_value(heap, obj, &tv)) {
 		duk_hstring *h;
@@ -1610,7 +1614,7 @@ DUK_LOCAL duk_bool_t duk__get_own_property_desc_raw(duk_hthread *thr, duk_hobjec
 	if (DUK_HOBJECT_HAS_ARRAY_PART(obj) && arr_idx != DUK__NO_ARRAY_INDEX) {
 		if (arr_idx < DUK_HOBJECT_GET_ASIZE(obj)) {
 			tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, arr_idx);
-			if (!DUK_TVAL_IS_UNDEFINED_UNUSED(tv)) {
+			if (!DUK_TVAL_IS_UNUSED(tv)) {
 				DUK_DDD(DUK_DDDPRINT("-> found in array part"));
 				if (flags & DUK__DESC_FLAG_PUSH_VALUE) {
 					duk_push_tval(ctx, tv);
@@ -2012,7 +2016,7 @@ DUK_LOCAL duk_tval *duk__getprop_shallow_fastpath_array_tval(duk_hthread *thr, d
 
 	DUK_DDD(DUK_DDDPRINT("key is a valid array index and inside array part"));
 	tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, idx);
-	if (!DUK_TVAL_IS_UNDEFINED_UNUSED(tv)) {
+	if (!DUK_TVAL_IS_UNUSED(tv)) {
 		DUK_DDD(DUK_DDDPRINT("-> fast path successful"));
 		return tv;
 	}
@@ -2024,7 +2028,6 @@ DUK_LOCAL duk_tval *duk__getprop_shallow_fastpath_array_tval(duk_hthread *thr, d
 DUK_LOCAL duk_bool_t duk__putprop_shallow_fastpath_array_tval(duk_hthread *thr, duk_hobject *obj, duk_tval *tv_key, duk_tval *tv_val, duk_propdesc *temp_desc) {
 	duk_tval *tv;
 	duk_uint32_t idx;
-	duk_tval tv_tmp;
 	duk_uint32_t old_len, new_len;
 
 	if (!(DUK_HOBJECT_HAS_EXOTIC_ARRAY(obj) &&
@@ -2081,10 +2084,7 @@ DUK_LOCAL duk_bool_t duk__putprop_shallow_fastpath_array_tval(duk_hthread *thr, 
 	}
 
 	tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, idx);
-	DUK_TVAL_SET_TVAL(&tv_tmp, tv);
-	DUK_TVAL_SET_TVAL(tv, tv_val);
-	DUK_TVAL_INCREF(thr, tv);
-	DUK_TVAL_DECREF(thr, &tv_tmp);  /* note: may trigger gc and props compaction, must be last */
+	DUK_TVAL_SET_TVAL_UPDREF(thr, tv, tv_val);  /* side effects */
 
 	DUK_DDD(DUK_DDDPRINT("array fast path success for index %ld", (long) idx));
 	return 1;
@@ -2252,7 +2252,12 @@ DUK_INTERNAL duk_bool_t duk_hobject_getprop(duk_hthread *thr, duk_tval *tv_obj, 
 	case DUK_TAG_NULL: {
 		/* Note: unconditional throw */
 		DUK_DDD(DUK_DDDPRINT("base object is undefined or null -> reject"));
+#if defined(DUK_USE_PARANOID_ERRORS)
 		DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, DUK_STR_INVALID_BASE);
+#else
+		DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, "cannot read property %s of %s",
+		          duk_push_string_tval_readable(ctx, tv_key), duk_push_string_tval_readable(ctx, tv_obj));
+#endif
 		return 0;
 	}
 
@@ -2544,6 +2549,7 @@ DUK_INTERNAL duk_bool_t duk_hobject_getprop(duk_hthread *thr, duk_tval *tv_obj, 
 	default: {
 		/* number */
 		DUK_DDD(DUK_DDDPRINT("base object is a number, start lookup from number prototype"));
+		DUK_ASSERT(!DUK_TVAL_IS_UNUSED(tv_obj));
 		DUK_ASSERT(DUK_TVAL_IS_NUMBER(tv_obj));
 		curr = thr->builtins[DUK_BIDX_NUMBER_PROTOTYPE];
 		break;
@@ -2939,7 +2945,6 @@ duk_bool_t duk__handle_put_array_length_smaller(duk_hthread *thr,
 	duk_uint32_t arr_idx;
 	duk_hstring *key;
 	duk_tval *tv;
-	duk_tval tv_tmp;
 	duk_bool_t rc;
 
 	DUK_DDD(DUK_DDDPRINT("new array length smaller than old (%ld -> %ld), "
@@ -2987,9 +2992,7 @@ duk_bool_t duk__handle_put_array_length_smaller(duk_hthread *thr,
 		while (i > new_len) {
 			i--;
 			tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, i);
-			DUK_TVAL_SET_TVAL(&tv_tmp, tv);
-			DUK_TVAL_SET_UNDEFINED_UNUSED(tv);
-			DUK_TVAL_DECREF(thr, &tv_tmp);
+			DUK_TVAL_SET_UNUSED_UPDREF(thr, tv);  /* side effects */
 		}
 
 		*out_result_len = new_len;
@@ -3289,7 +3292,12 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
 		/* Note: unconditional throw */
 		DUK_DDD(DUK_DDDPRINT("base object is undefined or null -> reject (object=%!iT)",
 		                     (duk_tval *) tv_obj));
+#if defined(DUK_USE_PARANOID_ERRORS)
 		DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, DUK_STR_INVALID_BASE);
+#else
+		DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, "cannot write property %s of %s",
+		          duk_push_string_tval_readable(ctx, tv_key), duk_push_string_tval_readable(ctx, tv_obj));
+#endif
 		return 0;
 	}
 
@@ -3335,10 +3343,10 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
 		 * the fast path will incorrectly ignore them.
 		 *
 		 * This fast path could be made compliant by falling through
-		 * to the slow path if the previous value was UNDEFINED_UNUSED.
-		 * This would also remove the need to check for extensibility.
-		 * Right now a non-extensible array is slower than an extensible
-		 * one as far as writes are concerned.
+		 * to the slow path if the previous value was UNUSED.  This would
+		 * also remove the need to check for extensibility.  Right now a
+		 * non-extensible array is slower than an extensible one as far
+		 * as writes are concerned.
 		 *
 		 * The fast path behavior is documented in more detail here:
 		 * tests/ecmascript/test-misc-array-fast-write.js
@@ -3746,14 +3754,9 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
 	}
 
 	if (desc.e_idx >= 0) {
-		duk_tval tv_tmp;
-
 		tv = DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, orig, desc.e_idx);
 		DUK_DDD(DUK_DDDPRINT("previous entry value: %!iT", (duk_tval *) tv));
-		DUK_TVAL_SET_TVAL(&tv_tmp, tv);
-		DUK_TVAL_SET_TVAL(tv, tv_val);
-		DUK_TVAL_INCREF(thr, tv);
-		DUK_TVAL_DECREF(thr, &tv_tmp);  /* note: may trigger gc and props compaction, must be last */
+		DUK_TVAL_SET_TVAL_UPDREF(thr, tv, tv_val);  /* side effects */
 		/* don't touch property attributes or hash part */
 		DUK_DD(DUK_DDPRINT("put to an existing entry at index %ld -> new value %!iT",
 		                   (long) desc.e_idx, (duk_tval *) tv));
@@ -3762,15 +3765,11 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
 		 * above is pointless for them.  The check could be avoided with some
 		 * refactoring but is probably not worth it.
 		 */
-		duk_tval tv_tmp;
 
 		DUK_ASSERT(desc.a_idx >= 0);
 		tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, orig, desc.a_idx);
 		DUK_DDD(DUK_DDDPRINT("previous array value: %!iT", (duk_tval *) tv));
-		DUK_TVAL_SET_TVAL(&tv_tmp, tv);
-		DUK_TVAL_SET_TVAL(tv, tv_val);
-		DUK_TVAL_INCREF(thr, tv);
-		DUK_TVAL_DECREF(thr, &tv_tmp);  /* note: may trigger gc and props compaction, must be last */
+		DUK_TVAL_SET_TVAL_UPDREF(thr, tv, tv_val);  /* side effects */
 		DUK_DD(DUK_DDPRINT("put to an existing array entry at index %ld -> new value %!iT",
 		                   (long) desc.a_idx, (duk_tval *) tv));
 	}
@@ -3927,7 +3926,7 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
 
 		tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, orig, arr_idx);
 		/* prev value must be unused, no decref */
-		DUK_ASSERT(DUK_TVAL_IS_UNDEFINED_UNUSED(tv));
+		DUK_ASSERT(DUK_TVAL_IS_UNUSED(tv));
 		DUK_TVAL_SET_TVAL(tv, tv_val);
 		DUK_TVAL_INCREF(thr, tv);
 		DUK_DD(DUK_DDPRINT("put to new array entry: %ld -> %!T",
@@ -4055,7 +4054,12 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
  fail_base_primitive:
 	DUK_DDD(DUK_DDDPRINT("result: error, base primitive"));
 	if (throw_flag) {
+#if defined(DUK_USE_PARANOID_ERRORS)
 		DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, DUK_STR_INVALID_BASE);
+#else
+		DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, "cannot write property %s of %s",
+		          duk_push_string_tval_readable(ctx, tv_key), duk_push_string_tval_readable(ctx, tv_obj));
+#endif
 	}
 	duk_pop(ctx);  /* remove key */
 	return 0;
@@ -4108,7 +4112,6 @@ DUK_INTERNAL duk_bool_t duk_hobject_putprop(duk_hthread *thr, duk_tval *tv_obj, 
 DUK_INTERNAL duk_bool_t duk_hobject_delprop_raw(duk_hthread *thr, duk_hobject *obj, duk_hstring *key, duk_small_uint_t flags) {
 	duk_propdesc desc;
 	duk_tval *tv;
-	duk_tval tv_tmp;
 	duk_uint32_t arr_idx;
 	duk_bool_t throw_flag;
 	duk_bool_t force_flag;
@@ -4149,9 +4152,7 @@ DUK_INTERNAL duk_bool_t duk_hobject_delprop_raw(duk_hthread *thr, duk_hobject *o
 		DUK_ASSERT(desc.e_idx < 0);
 
 		tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, desc.a_idx);
-		DUK_TVAL_SET_TVAL(&tv_tmp, tv);
-		DUK_TVAL_SET_UNDEFINED_UNUSED(tv);
-		DUK_TVAL_DECREF(thr, &tv_tmp);
+		DUK_TVAL_SET_UNUSED_UPDREF(thr, tv);  /* side effects */
 		goto success;
 	} else {
 		DUK_ASSERT(desc.a_idx < 0);
@@ -4182,21 +4183,20 @@ DUK_INTERNAL duk_bool_t duk_hobject_delprop_raw(duk_hthread *thr, duk_hobject *o
 			tmp = DUK_HOBJECT_E_GET_VALUE_GETTER(thr->heap, obj, desc.e_idx);
 			DUK_HOBJECT_E_SET_VALUE_GETTER(thr->heap, obj, desc.e_idx, NULL);
 			DUK_UNREF(tmp);
-			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);
+			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);  /* side effects */
 
 			tmp = DUK_HOBJECT_E_GET_VALUE_SETTER(thr->heap, obj, desc.e_idx);
 			DUK_HOBJECT_E_SET_VALUE_SETTER(thr->heap, obj, desc.e_idx, NULL);
 			DUK_UNREF(tmp);
-			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);
+			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);  /* side effects */
 		} else {
 			tv = DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, desc.e_idx);
-			DUK_TVAL_SET_TVAL(&tv_tmp, tv);
-			DUK_TVAL_SET_UNDEFINED_UNUSED(tv);
-			DUK_TVAL_DECREF(thr, &tv_tmp);
+			DUK_TVAL_SET_UNDEFINED_UPDREF(thr, tv);  /* side effects */
 		}
-		/* this is not strictly necessary because if key == NULL, value MUST be ignored */
+#if 0
+		/* Not strictly necessary because if key == NULL, flag MUST be ignored. */
 		DUK_HOBJECT_E_SET_FLAGS(thr->heap, obj, desc.e_idx, 0);
-		DUK_TVAL_SET_UNDEFINED_UNUSED(DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, desc.e_idx));
+#endif
 
 		/* remove key */
 		DUK_DDD(DUK_DDDPRINT("before removing key, e_idx %ld, key %p, key at slot %p",
@@ -4204,7 +4204,7 @@ DUK_INTERNAL duk_bool_t duk_hobject_delprop_raw(duk_hthread *thr, duk_hobject *o
 		DUK_DDD(DUK_DDDPRINT("removing key at e_idx %ld", (long) desc.e_idx));
 		DUK_ASSERT(key == DUK_HOBJECT_E_GET_KEY(thr->heap, obj, desc.e_idx));
 		DUK_HOBJECT_E_SET_KEY(thr->heap, obj, desc.e_idx, NULL);
-		DUK_HSTRING_DECREF(thr, key);
+		DUK_HSTRING_DECREF(thr, key);  /* side effects */
 		goto success;
 	}
 
@@ -4421,7 +4421,12 @@ DUK_INTERNAL duk_bool_t duk_hobject_delprop(duk_hthread *thr, duk_tval *tv_obj, 
  fail_invalid_base_uncond:
 	/* Note: unconditional throw */
 	DUK_ASSERT(duk_get_top(ctx) == entry_top);
+#if defined(DUK_USE_PARANOID_ERRORS)
 	DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, DUK_STR_INVALID_BASE);
+#else
+	DUK_ERROR(thr, DUK_ERR_TYPE_ERROR, "cannot delete property %s of %s",
+	          duk_push_string_tval_readable(ctx, tv_key), duk_push_string_tval_readable(ctx, tv_obj));
+#endif
 	return 0;
 
  fail_proxy_rejected:
@@ -4463,7 +4468,6 @@ DUK_INTERNAL void duk_hobject_define_property_internal(duk_hthread *thr, duk_hob
 	duk_propdesc desc;
 	duk_uint32_t arr_idx;
 	duk_int_t e_idx;
-	duk_tval tv_tmp;
 	duk_tval *tv1 = NULL;
 	duk_tval *tv2 = NULL;
 	duk_small_uint_t propflags = flags & DUK_PROPDESC_FLAGS_MASK;  /* mask out flags not actually stored */
@@ -4543,7 +4547,7 @@ DUK_INTERNAL void duk_hobject_define_property_internal(duk_hthread *thr, duk_hob
 	DUK_HOBJECT_E_SET_FLAGS(thr->heap, obj, e_idx, propflags);
 	tv1 = DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, e_idx);
 	/* new entry: previous value is garbage; set to undefined to share write_value */
-	DUK_TVAL_SET_UNDEFINED_ACTUAL(tv1);
+	DUK_TVAL_SET_UNDEFINED(tv1);
 	goto write_value;
 
  write_value:
@@ -4553,10 +4557,7 @@ DUK_INTERNAL void duk_hobject_define_property_internal(duk_hthread *thr, duk_hob
 	DUK_DDD(DUK_DDDPRINT("writing/updating value: %!T -> %!T",
 	                     (duk_tval *) tv1, (duk_tval *) tv2));
 
-	DUK_TVAL_SET_TVAL(&tv_tmp, tv1);
-	DUK_TVAL_SET_TVAL(tv1, tv2);
-	DUK_TVAL_INCREF(thr, tv1);
-	DUK_TVAL_DECREF(thr, &tv_tmp);  /* side effects */
+	DUK_TVAL_SET_TVAL_UPDREF(thr, tv1, tv2);  /* side effects */
 	goto pop_exit;
 
  pop_exit:
@@ -4582,7 +4583,6 @@ DUK_INTERNAL void duk_hobject_define_property_internal_arridx(duk_hthread *thr, 
 	duk_context *ctx = (duk_context *) thr;
 	duk_hstring *key;
 	duk_tval *tv1, *tv2;
-	duk_tval tv_tmp;
 
 	DUK_DDD(DUK_DDDPRINT("define new property (internal) arr_idx fast path: thr=%p, obj=%!O, "
 	                     "arr_idx=%ld, flags=0x%02lx, val=%!T",
@@ -4609,10 +4609,7 @@ DUK_INTERNAL void duk_hobject_define_property_internal_arridx(duk_hthread *thr, 
 		tv1 = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, arr_idx);
 		tv2 = duk_require_tval(ctx, -1);
 
-		DUK_TVAL_SET_TVAL(&tv_tmp, tv1);
-		DUK_TVAL_SET_TVAL(tv1, tv2);
-		DUK_TVAL_INCREF(thr, tv1);
-		DUK_TVAL_DECREF(thr, &tv_tmp);  /* side effects */
+		DUK_TVAL_SET_TVAL_UPDREF(thr, tv1, tv2);  /* side effects */
 
 		duk_pop(ctx);  /* [ ...val ] -> [ ... ] */
 		return;
@@ -5193,7 +5190,7 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 				duk_tval *tv_tmp = duk_require_tval(ctx, idx_value);
 				DUK_TVAL_SET_TVAL(&tv, tv_tmp);
 			} else {
-				DUK_TVAL_SET_UNDEFINED_ACTUAL(&tv);  /* default value */
+				DUK_TVAL_SET_UNDEFINED(&tv);  /* default value */
 			}
 
 			if (arr_idx != DUK__NO_ARRAY_INDEX && DUK_HOBJECT_HAS_ARRAY_PART(obj)) {
@@ -5363,7 +5360,6 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 			}
 		} else {
 			duk_bool_t rc;
-			duk_tval tv_tmp;
 			duk_tval *tv1;
 
 			/* curr is data, desc is accessor */
@@ -5385,9 +5381,8 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 			DUK_ASSERT(!DUK_HOBJECT_E_SLOT_IS_ACCESSOR(thr->heap, obj, curr.e_idx));
 
 			tv1 = DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, curr.e_idx);
-			DUK_TVAL_SET_TVAL(&tv_tmp, tv1);
-			DUK_TVAL_SET_UNDEFINED_UNUSED(tv1);
-			DUK_TVAL_DECREF(thr, &tv_tmp);
+			/* XXX: just decref */
+			DUK_TVAL_SET_UNDEFINED_UPDREF(thr, tv1);  /* side effects */
 
 			DUK_HOBJECT_E_SET_VALUE_GETTER(thr->heap, obj, curr.e_idx, NULL);
 			DUK_HOBJECT_E_SET_VALUE_SETTER(thr->heap, obj, curr.e_idx, NULL);
@@ -5428,13 +5423,13 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 			tmp = DUK_HOBJECT_E_GET_VALUE_GETTER(thr->heap, obj, curr.e_idx);
 			DUK_UNREF(tmp);
 			DUK_HOBJECT_E_SET_VALUE_GETTER(thr->heap, obj, curr.e_idx, NULL);
-			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);
+			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);  /* side effects */
 			tmp = DUK_HOBJECT_E_GET_VALUE_SETTER(thr->heap, obj, curr.e_idx);
 			DUK_UNREF(tmp);
 			DUK_HOBJECT_E_SET_VALUE_SETTER(thr->heap, obj, curr.e_idx, NULL);
-			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);
+			DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);  /* side effects */
 
-			DUK_TVAL_SET_UNDEFINED_ACTUAL(DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, curr.e_idx));
+			DUK_TVAL_SET_UNDEFINED(DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, curr.e_idx));
 			DUK_HOBJECT_E_SLOT_CLEAR_WRITABLE(thr->heap, obj, curr.e_idx);
 			DUK_HOBJECT_E_SLOT_CLEAR_ACCESSOR(thr->heap, obj, curr.e_idx);
 
@@ -5520,7 +5515,6 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 
 		if (new_flags == DUK_PROPDESC_FLAGS_WEC) {
 			duk_tval *tv1, *tv2;
-			duk_tval tv_tmp;
 
 			DUK_DDD(DUK_DDDPRINT("array index, new property attributes match array defaults, update in-place"));
 
@@ -5530,10 +5524,7 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 
 			tv2 = duk_require_tval(ctx, idx_value);
 			tv1 = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, curr.a_idx);
-			DUK_TVAL_SET_TVAL(&tv_tmp, tv1);
-			DUK_TVAL_SET_TVAL(tv1, tv2);
-			DUK_TVAL_INCREF(thr, tv1);
-			DUK_TVAL_DECREF(thr, &tv_tmp);
+			DUK_TVAL_SET_TVAL_UPDREF(thr, tv1, tv2);  /* side effects */
 			goto success_exotics;
 		}
 
@@ -5564,7 +5555,7 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 		DUK_UNREF(tmp);
 		DUK_HOBJECT_E_SET_VALUE_SETTER(thr->heap, obj, curr.e_idx, set);
 		DUK_HOBJECT_INCREF_ALLOWNULL(thr, set);
-		DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);
+		DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);  /* side effects */
 	}
 	if (has_get) {
 		duk_hobject *tmp;
@@ -5576,21 +5567,17 @@ void duk_hobject_define_property_helper(duk_context *ctx,
 		DUK_UNREF(tmp);
 		DUK_HOBJECT_E_SET_VALUE_GETTER(thr->heap, obj, curr.e_idx, get);
 		DUK_HOBJECT_INCREF_ALLOWNULL(thr, get);
-		DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);
+		DUK_HOBJECT_DECREF_ALLOWNULL(thr, tmp);  /* side effects */
 	}
 	if (has_value) {
 		duk_tval *tv1, *tv2;
-		duk_tval tv_tmp;
 
 		DUK_DDD(DUK_DDDPRINT("update existing property value"));
 		DUK_ASSERT(!DUK_HOBJECT_E_SLOT_IS_ACCESSOR(thr->heap, obj, curr.e_idx));
 
 		tv2 = duk_require_tval(ctx, idx_value);
 		tv1 = DUK_HOBJECT_E_GET_VALUE_TVAL_PTR(thr->heap, obj, curr.e_idx);
-		DUK_TVAL_SET_TVAL(&tv_tmp, tv1);
-		DUK_TVAL_SET_TVAL(tv1, tv2);
-		DUK_TVAL_INCREF(thr, tv1);
-		DUK_TVAL_DECREF(thr, &tv_tmp);
+		DUK_TVAL_SET_TVAL_UPDREF(thr, tv1, tv2);  /* side effects */
 	}
 
 	/*
@@ -5908,7 +5895,7 @@ DUK_INTERNAL duk_bool_t duk_hobject_object_is_sealed_frozen_helper(duk_hthread *
 	 */
 	for (i = 0; i < DUK_HOBJECT_GET_ASIZE(obj); i++) {
 		duk_tval *tv = DUK_HOBJECT_A_GET_VALUE_PTR(thr->heap, obj, i);
-		if (!DUK_TVAL_IS_UNDEFINED_UNUSED(tv)) {
+		if (!DUK_TVAL_IS_UNUSED(tv)) {
 			return 0;
 		}
 	}

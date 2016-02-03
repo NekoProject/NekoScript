@@ -17,7 +17,7 @@ DUK_LOCAL void duk__concat_and_join_helper(duk_context *ctx, duk_idx_t count_in,
 
 	if (DUK_UNLIKELY(count_in <= 0)) {
 		if (count_in < 0) {
-			DUK_ERROR(thr, DUK_ERR_API_ERROR, DUK_STR_INVALID_COUNT);
+			DUK_ERROR_API(thr, DUK_STR_INVALID_COUNT);
 			return;
 		}
 		DUK_ASSERT(count_in == 0);
@@ -133,7 +133,7 @@ DUK_EXTERNAL void duk_decode_string(duk_context *ctx, duk_idx_t index, duk_decod
 	h_input = duk_require_hstring(ctx, index);
 	DUK_ASSERT(h_input != NULL);
 
-	p_start = (duk_uint8_t *) DUK_HSTRING_GET_DATA(h_input);
+	p_start = (const duk_uint8_t *) DUK_HSTRING_GET_DATA(h_input);
 	p_end = p_start + DUK_HSTRING_GET_BYTELEN(h_input);
 	p = p_start;
 
@@ -164,7 +164,7 @@ DUK_EXTERNAL void duk_map_string(duk_context *ctx, duk_idx_t index, duk_map_char
 	bw = &bw_alloc;
 	DUK_BW_INIT_PUSHBUF(thr, bw, DUK_HSTRING_GET_BYTELEN(h_input));  /* reasonable output estimate */
 
-	p_start = (duk_uint8_t *) DUK_HSTRING_GET_DATA(h_input);
+	p_start = (const duk_uint8_t *) DUK_HSTRING_GET_DATA(h_input);
 	p_end = p_start + DUK_HSTRING_GET_BYTELEN(h_input);
 	p = p_start;
 
@@ -298,7 +298,8 @@ DUK_EXTERNAL void duk_trim(duk_context *ctx, duk_idx_t index) {
 	DUK_ASSERT(q_end >= q_start);
 
 	DUK_DDD(DUK_DDDPRINT("trim: p_start=%p, p_end=%p, q_start=%p, q_end=%p",
-	                     (void *) p_start, (void *) p_end, (void *) q_start, (void *) q_end));
+	                     (const void *) p_start, (const void *) p_end,
+	                     (const void *) q_start, (const void *) q_end));
 
 	if (q_start == p_start && q_end == p_end) {
 		DUK_DDD(DUK_DDDPRINT("nothing was trimmed: avoid interning (hashing etc)"));

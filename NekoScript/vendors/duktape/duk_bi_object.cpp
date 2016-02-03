@@ -484,6 +484,12 @@ DUK_INTERNAL duk_ret_t duk_bi_object_constructor_keys_shared(duk_context *ctx) {
 		}
 	}
 
+	/* XXX: missing trap result validation for non-configurable target keys
+	 * (must be present), for non-extensible target all target keys must be
+	 * present and no extra keys can be present.
+	 * http://www.ecma-international.org/ecma-262/6.0/#sec-proxy-object-internal-methods-and-internal-slots-ownpropertykeys
+	 */
+
 	/* XXX: for Object.keys() the [[OwnPropertyKeys]] result (trap result)
 	 * should be filtered so that only enumerable keys remain.  Enumerability
 	 * should be checked with [[GetOwnProperty]] on the original object
@@ -517,31 +523,8 @@ DUK_INTERNAL duk_ret_t duk_bi_object_constructor_keys_shared(duk_context *ctx) {
 }
 
 DUK_INTERNAL duk_ret_t duk_bi_object_prototype_to_string(duk_context *ctx) {
-	duk_hthread *thr = (duk_hthread *) ctx;
-
 	duk_push_this(ctx);
-	duk_push_string(ctx, "[object ");
-
-	if (duk_is_undefined(ctx, -2)) {
-		duk_push_hstring_stridx(ctx, DUK_STRIDX_UC_UNDEFINED);
-	} else if (duk_is_null(ctx, -2)) {
-		duk_push_hstring_stridx(ctx, DUK_STRIDX_UC_NULL);
-	} else {
-		duk_hobject *h_this;
-		duk_hstring *h_classname;
-
-		duk_to_object(ctx, -2);
-		h_this = duk_get_hobject(ctx, -2);
-		DUK_ASSERT(h_this != NULL);
-
-		h_classname = DUK_HOBJECT_GET_CLASS_STRING(thr->heap, h_this);
-		DUK_ASSERT(h_classname != NULL);
-
-		duk_push_hstring(ctx, h_classname);
-	}
-
-	duk_push_string(ctx, "]");
-	duk_concat(ctx, 3);
+	duk_to_object_class_string_top(ctx);
 	return 1;
 }
 

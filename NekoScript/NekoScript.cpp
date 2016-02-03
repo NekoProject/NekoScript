@@ -35,7 +35,8 @@ duk_ret_t InitDuktapeContext(duk_context *ctx) {
 	NKWinTaskDialog::setup(ctx); duk_put_global_string(ctx, "NKWinTaskDialog");
 #endif
 
-	return 0;
+	duk_push_null(ctx);
+	return 1;
 }
 
 void ShowConsole() {

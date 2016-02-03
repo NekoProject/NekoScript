@@ -95,7 +95,7 @@ typedef struct {
 	const duk_uint8_t *p_end;
 } duk__transform_context;
 
-typedef void (*duk__transform_callback)(duk__transform_context *tfm_ctx, void *udata, duk_codepoint_t cp);
+typedef void (*duk__transform_callback)(duk__transform_context *tfm_ctx, const void *udata, duk_codepoint_t cp);
 
 /* XXX: refactor and share with other code */
 DUK_LOCAL duk_small_int_t duk__decode_hex_escape(const duk_uint8_t *p, duk_small_int_t n) {
@@ -115,7 +115,7 @@ DUK_LOCAL duk_small_int_t duk__decode_hex_escape(const duk_uint8_t *p, duk_small
 	return t;
 }
 
-DUK_LOCAL int duk__transform_helper(duk_context *ctx, duk__transform_callback callback, void *udata) {
+DUK_LOCAL int duk__transform_helper(duk_context *ctx, duk__transform_callback callback, const void *udata) {
 	duk_hthread *thr = (duk_hthread *) ctx;
 	duk__transform_context tfm_ctx_alloc;
 	duk__transform_context *tfm_ctx = &tfm_ctx_alloc;
@@ -143,12 +143,12 @@ DUK_LOCAL int duk__transform_helper(duk_context *ctx, duk__transform_callback ca
 	return 1;
 }
 
-DUK_LOCAL void duk__transform_callback_encode_uri(duk__transform_context *tfm_ctx, void *udata, duk_codepoint_t cp) {
+DUK_LOCAL void duk__transform_callback_encode_uri(duk__transform_context *tfm_ctx, const void *udata, duk_codepoint_t cp) {
 	duk_uint8_t xutf8_buf[DUK_UNICODE_MAX_XUTF8_LENGTH];
 	duk_small_int_t len;
 	duk_codepoint_t cp1, cp2;
 	duk_small_int_t i, t;
-	const duk_uint8_t *unescaped_table = (duk_uint8_t *) udata;
+	const duk_uint8_t *unescaped_table = (const duk_uint8_t *) udata;
 
 	/* UTF-8 encoded bytes escaped as %xx%xx%xx... -> 3 * nbytes.
 	 * Codepoint range is restricted so this is a slightly too large
@@ -205,8 +205,8 @@ DUK_LOCAL void duk__transform_callback_encode_uri(duk__transform_context *tfm_ct
 	DUK_ERROR(tfm_ctx->thr, DUK_ERR_URI_ERROR, "invalid input");
 }
 
-DUK_LOCAL void duk__transform_callback_decode_uri(duk__transform_context *tfm_ctx, void *udata, duk_codepoint_t cp) {
-	const duk_uint8_t *reserved_table = (duk_uint8_t *) udata;
+DUK_LOCAL void duk__transform_callback_decode_uri(duk__transform_context *tfm_ctx, const void *udata, duk_codepoint_t cp) {
+	const duk_uint8_t *reserved_table = (const duk_uint8_t *) udata;
 	duk_small_uint_t utf8_blen;
 	duk_codepoint_t min_cp;
 	duk_small_int_t t;  /* must be signed */
@@ -344,7 +344,7 @@ DUK_LOCAL void duk__transform_callback_decode_uri(duk__transform_context *tfm_ct
 }
 
 #ifdef DUK_USE_SECTION_B
-DUK_LOCAL void duk__transform_callback_escape(duk__transform_context *tfm_ctx, void *udata, duk_codepoint_t cp) {
+DUK_LOCAL void duk__transform_callback_escape(duk__transform_context *tfm_ctx, const void *udata, duk_codepoint_t cp) {
 	DUK_UNREF(udata);
 
 	DUK_BW_ENSURE(tfm_ctx->thr, &tfm_ctx->bw, 6);
@@ -383,7 +383,7 @@ DUK_LOCAL void duk__transform_callback_escape(duk__transform_context *tfm_ctx, v
 	DUK_ERROR(tfm_ctx->thr, DUK_ERR_TYPE_ERROR, "invalid input");
 }
 
-DUK_LOCAL void duk__transform_callback_unescape(duk__transform_context *tfm_ctx, void *udata, duk_codepoint_t cp) {
+DUK_LOCAL void duk__transform_callback_unescape(duk__transform_context *tfm_ctx, const void *udata, duk_codepoint_t cp) {
 	duk_small_int_t t;
 
 	DUK_UNREF(udata);
@@ -429,8 +429,9 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_eval(duk_context *ctx) {
 	duk_hobject *outer_var_env;
 	duk_bool_t this_to_global = 1;
 	duk_small_uint_t comp_flags;
+	duk_int_t level = -2;
 
-	DUK_ASSERT_TOP(ctx, 1);
+	DUK_ASSERT(duk_get_top(ctx) == 1 || duk_get_top(ctx) == 2);  /* 2 when called by debugger */
 	DUK_ASSERT(thr->callstack_top >= 1);  /* at least this function exists */
 	DUK_ASSERT(((thr->callstack + thr->callstack_top - 1)->flags & DUK_ACT_FLAG_DIRECT_EVAL) == 0 || /* indirect eval */
 	           (thr->callstack_top >= 2));  /* if direct eval, calling activation must exist */
@@ -448,15 +449,26 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_eval(duk_context *ctx) {
 		return 1;  /* return arg as-is */
 	}
 
+#if defined(DUK_USE_DEBUGGER_SUPPORT)
+	/* NOTE: level is used only by the debugger and should never be present
+	 * for an Ecmascript eval().
+	 */
+	DUK_ASSERT(level == -2);  /* by default, use caller's environment */
+	if (duk_get_top(ctx) >= 2 && duk_is_number(ctx, 1)) {
+		level = duk_get_int(ctx, 1);
+	}
+	DUK_ASSERT(level <= -2);  /* This is guaranteed by debugger code. */
+#endif
+
 	/* [ source ] */
 
 	comp_flags = DUK_JS_COMPILE_FLAG_EVAL;
 	act_eval = thr->callstack + thr->callstack_top - 1;    /* this function */
-	if (thr->callstack_top >= 2) {
+	if (thr->callstack_top >= (duk_size_t) -level) {
 		/* Have a calling activation, check for direct eval (otherwise
 		 * assume indirect eval.
 		 */
-		act_caller = thr->callstack + thr->callstack_top - 2;  /* caller */
+		act_caller = thr->callstack + thr->callstack_top + level;  /* caller */
 		if ((act_caller->flags & DUK_ACT_FLAG_STRICT) &&
 		    (act_eval->flags & DUK_ACT_FLAG_DIRECT_EVAL)) {
 			/* Only direct eval inherits strictness from calling code
@@ -486,14 +498,14 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_eval(duk_context *ctx) {
 	act = thr->callstack + thr->callstack_top - 1;  /* this function */
 	if (act->flags & DUK_ACT_FLAG_DIRECT_EVAL) {
 		DUK_ASSERT(thr->callstack_top >= 2);
-		act = thr->callstack + thr->callstack_top - 2;  /* caller */
+		act = thr->callstack + thr->callstack_top + level;  /* caller */
 		if (act->lex_env == NULL) {
 			DUK_ASSERT(act->var_env == NULL);
 			DUK_DDD(DUK_DDDPRINT("delayed environment initialization"));
 
 			/* this may have side effects, so re-lookup act */
 			duk_js_init_activation_environment_records_delayed(thr, act);
-			act = thr->callstack + thr->callstack_top - 2;
+			act = thr->callstack + thr->callstack_top + level;
 		}
 		DUK_ASSERT(act->lex_env != NULL);
 		DUK_ASSERT(act->var_env != NULL);
@@ -508,7 +520,7 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_eval(duk_context *ctx) {
 			                     "var_env and lex_env to a fresh env, "
 			                     "this_binding to caller's this_binding"));
 
-			act = thr->callstack + thr->callstack_top - 2;  /* caller */
+			act = thr->callstack + thr->callstack_top + level;  /* caller */
 			act_lex_env = act->lex_env;
 			act = NULL;  /* invalidated */
 
@@ -559,7 +571,7 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_eval(duk_context *ctx) {
 	} else {
 		duk_tval *tv;
 		DUK_ASSERT(thr->callstack_top >= 2);
-		act = thr->callstack + thr->callstack_top - 2;  /* caller */
+		act = thr->callstack + thr->callstack_top + level;  /* caller */
 		tv = thr->valstack + act->idx_bottom - 1;  /* this is just beneath bottom */
 		DUK_ASSERT(tv >= thr->valstack);
 		duk_push_tval(ctx, tv);
@@ -672,28 +684,28 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_is_finite(duk_context *ctx) {
  */
 
 DUK_INTERNAL duk_ret_t duk_bi_global_object_decode_uri(duk_context *ctx) {
-	return duk__transform_helper(ctx, duk__transform_callback_decode_uri, (void *) duk__decode_uri_reserved_table);
+	return duk__transform_helper(ctx, duk__transform_callback_decode_uri, (const void *) duk__decode_uri_reserved_table);
 }
 
 DUK_INTERNAL duk_ret_t duk_bi_global_object_decode_uri_component(duk_context *ctx) {
-	return duk__transform_helper(ctx, duk__transform_callback_decode_uri, (void *) duk__decode_uri_component_reserved_table);
+	return duk__transform_helper(ctx, duk__transform_callback_decode_uri, (const void *) duk__decode_uri_component_reserved_table);
 }
 
 DUK_INTERNAL duk_ret_t duk_bi_global_object_encode_uri(duk_context *ctx) {
-	return duk__transform_helper(ctx, duk__transform_callback_encode_uri, (void *) duk__encode_uriunescaped_table);
+	return duk__transform_helper(ctx, duk__transform_callback_encode_uri, (const void *) duk__encode_uriunescaped_table);
 }
 
 DUK_INTERNAL duk_ret_t duk_bi_global_object_encode_uri_component(duk_context *ctx) {
-	return duk__transform_helper(ctx, duk__transform_callback_encode_uri, (void *) duk__encode_uricomponent_unescaped_table);
+	return duk__transform_helper(ctx, duk__transform_callback_encode_uri, (const void *) duk__encode_uricomponent_unescaped_table);
 }
 
 #ifdef DUK_USE_SECTION_B
 DUK_INTERNAL duk_ret_t duk_bi_global_object_escape(duk_context *ctx) {
-	return duk__transform_helper(ctx, duk__transform_callback_escape, (void *) NULL);
+	return duk__transform_helper(ctx, duk__transform_callback_escape, (const void *) NULL);
 }
 
 DUK_INTERNAL duk_ret_t duk_bi_global_object_unescape(duk_context *ctx) {
-	return duk__transform_helper(ctx, duk__transform_callback_unescape, (void *) NULL);
+	return duk__transform_helper(ctx, duk__transform_callback_unescape, (const void *) NULL);
 }
 #else  /* DUK_USE_SECTION_B */
 DUK_INTERNAL duk_ret_t duk_bi_global_object_escape(duk_context *ctx) {
@@ -721,6 +733,8 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_print_helper(duk_context *ctx) {
 #ifdef DUK_USE_FILE_IO
 	duk_file *f_out;
 #endif
+
+	DUK_UNREF(thr);
 
 	magic = duk_get_current_magic(ctx);
 	DUK_UNREF(magic);
@@ -762,13 +776,13 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_print_helper(duk_context *ctx) {
 		}
 
 		if (sz_buf <= sizeof(buf_stack)) {
-			buf = (const duk_uint8_t *) buf_stack;
+			p = (duk_uint8_t *) buf_stack;
 		} else {
-			buf = (const duk_uint8_t *) duk_push_fixed_buffer(ctx, sz_buf);
-			DUK_ASSERT(buf != NULL);
+			p = (duk_uint8_t *) duk_push_fixed_buffer(ctx, sz_buf);
+			DUK_ASSERT(p != NULL);
 		}
 
-		p = (duk_uint8_t *) buf;
+		buf = (const duk_uint8_t *) p;
 		for (i = 0; i < nargs; i++) {
 			p_str = (const duk_uint8_t *) duk_get_lstring(ctx, i, &sz_str);
 			DUK_ASSERT(p_str != NULL);
@@ -776,7 +790,7 @@ DUK_INTERNAL duk_ret_t duk_bi_global_object_print_helper(duk_context *ctx) {
 			p += sz_str;
 			*p++ = (duk_uint8_t) (i == nargs - 1 ? DUK_ASC_LF : DUK_ASC_SPACE);
 		}
-		DUK_ASSERT((const duk_uint8_t *) p == buf + sz_total);
+		DUK_ASSERT((const duk_uint8_t *) p == buf + sz_buf);
 #endif  /* DUK_USE_PREFER_SIZE */
 	} else {
 		buf = (const duk_uint8_t *) &nl;

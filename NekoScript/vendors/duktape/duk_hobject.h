@@ -492,7 +492,7 @@
 		DUK_HOBJECT_E_GET_VALUE((heap), (h), (i)).a.set = (v); \
 	} while (0)
 #define DUK_HOBJECT_E_SET_FLAGS(heap,h,i,f)  do { \
-		DUK_HOBJECT_E_GET_FLAGS((heap), (h), (i)) = (f); \
+		DUK_HOBJECT_E_GET_FLAGS((heap), (h), (i)) = (duk_uint8_t) (f); \
 	} while (0)
 #define DUK_HOBJECT_A_SET_VALUE(heap,h,i,v)  do { \
 		DUK_HOBJECT_A_GET_VALUE((heap), (h), (i)) = (v); \
@@ -614,7 +614,7 @@
 #endif
 
 /* note: this updates refcounts */
-#define DUK_HOBJECT_SET_PROTOTYPE_UPDREF(thr,h,p)       duk_hobject_set_prototype((thr), (h), (p))
+#define DUK_HOBJECT_SET_PROTOTYPE_UPDREF(thr,h,p)       duk_hobject_set_prototype_updref((thr), (h), (p))
 
 /*
  *  Resizing and hash behavior
@@ -902,7 +902,7 @@ DUK_INTERNAL_DECL duk_ret_t duk_hobject_get_enumerated_keys(duk_context *ctx, du
 DUK_INTERNAL_DECL duk_bool_t duk_hobject_enumerator_next(duk_context *ctx, duk_bool_t get_value);
 
 /* macros */
-DUK_INTERNAL_DECL void duk_hobject_set_prototype(duk_hthread *thr, duk_hobject *h, duk_hobject *p);
+DUK_INTERNAL_DECL void duk_hobject_set_prototype_updref(duk_hthread *thr, duk_hobject *h, duk_hobject *p);
 
 /* finalization */
 DUK_INTERNAL_DECL void duk_hobject_run_finalizer(duk_hthread *thr, duk_hobject *obj);

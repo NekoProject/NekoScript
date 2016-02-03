@@ -250,7 +250,7 @@ DUK_LOCAL duk_hstring *duk__find_matching_string_chain(duk_heap *heap, const duk
 			duk_hstring *h = (duk_hstring *) DUK_USE_HEAPPTR_DEC16(heap->heap_udata, e->u.str16);
 			DUK_ASSERT(h != NULL);
 			if (DUK_HSTRING_GET_BYTELEN(h) == blen &&
-			    DUK_MEMCMP(str, DUK_HSTRING_GET_DATA(h), blen) == 0) {
+			    DUK_MEMCMP((const void *) str, (const void *) DUK_HSTRING_GET_DATA(h), (size_t) blen) == 0) {
 				return h;
 			}
 		}
@@ -263,7 +263,7 @@ DUK_LOCAL duk_hstring *duk__find_matching_string_chain(duk_heap *heap, const duk
 				duk_hstring *h = (duk_hstring *) DUK_USE_HEAPPTR_DEC16(heap->heap_udata, lst[i]);
 				DUK_ASSERT(h != NULL);
 				if (DUK_HSTRING_GET_BYTELEN(h) == blen &&
-				    DUK_MEMCMP(str, DUK_HSTRING_GET_DATA(h), blen) == 0) {
+				    DUK_MEMCMP((const void *) str, (const void *) DUK_HSTRING_GET_DATA(h), (size_t) blen) == 0) {
 					return h;
 				}
 			}
@@ -288,7 +288,7 @@ DUK_LOCAL duk_hstring *duk__find_matching_string_chain(duk_heap *heap, const duk
 	if (e->listlen == 0) {
 		if (e->u.str != NULL &&
 	           DUK_HSTRING_GET_BYTELEN(e->u.str) == blen &&
-	           DUK_MEMCMP(str, DUK_HSTRING_GET_DATA(e->u.str), blen) == 0) {
+	           DUK_MEMCMP((const void *) str, (const void *) DUK_HSTRING_GET_DATA(e->u.str), (size_t) blen) == 0) {
 			return e->u.str;
 		}
 	} else {
@@ -297,7 +297,7 @@ DUK_LOCAL duk_hstring *duk__find_matching_string_chain(duk_heap *heap, const duk
 		for (i = 0, n = e->listlen; i < n; i++) {
 			if (lst[i] != NULL &&
 		           DUK_HSTRING_GET_BYTELEN(lst[i]) == blen &&
-		           DUK_MEMCMP(str, DUK_HSTRING_GET_DATA(lst[i]), blen) == 0) {
+		           DUK_MEMCMP((const void *) str, (const void *) DUK_HSTRING_GET_DATA(lst[i]), (size_t) blen) == 0) {
 				return lst[i];
 			}
 		}
@@ -549,7 +549,7 @@ DUK_LOCAL duk_hstring *duk__find_matching_string_probe(duk_heap *heap, duk_hstri
 			return NULL;
 		}
 		if (e != DUK__DELETED_MARKER(heap) && DUK_HSTRING_GET_BYTELEN(e) == blen) {
-			if (DUK_MEMCMP(str, DUK_HSTRING_GET_DATA(e), blen) == 0) {
+			if (DUK_MEMCMP((const void *) str, (const void *) DUK_HSTRING_GET_DATA(e), (size_t) blen) == 0) {
 				DUK_DDD(DUK_DDDPRINT("find matching hit: %ld (step %ld, size %ld)",
 				                     (long) i, (long) step, (long) size));
 				return e;
@@ -974,6 +974,7 @@ DUK_INTERNAL duk_hstring *duk_heap_string_intern_u32_checked(duk_hthread *thr, d
 }
 
 /* find and remove string from stringtable; caller must free the string itself */
+#if defined(DUK_USE_REFERENCE_COUNTING)
 DUK_INTERNAL void duk_heap_string_remove(duk_heap *heap, duk_hstring *h) {
 	DUK_DDD(DUK_DDDPRINT("remove string from stringtable: %!O", (duk_heaphdr *) h));
 
@@ -992,6 +993,7 @@ DUK_INTERNAL void duk_heap_string_remove(duk_heap *heap, duk_hstring *h) {
 #error internal error, invalid strtab options
 #endif
 }
+#endif
 
 #if defined(DUK_USE_MARK_AND_SWEEP) && defined(DUK_USE_MS_STRINGTABLE_RESIZE)
 DUK_INTERNAL void duk_heap_force_strtab_resize(duk_heap *heap) {

@@ -394,7 +394,7 @@ DUK_LOCAL void duk__clamp_startend_negidx_shifted(duk_context *ctx,
 DUK_INTERNAL void duk_hbufferobject_push_validated_read(duk_context *ctx, duk_hbufferobject *h_bufobj, duk_uint8_t *p, duk_small_uint_t elem_size) {
 	duk_double_union du;
 
-	DUK_MEMCPY((void *) du.uc, (const void *) p, elem_size);
+	DUK_MEMCPY((void *) du.uc, (const void *) p, (size_t) elem_size);
 
 	switch (h_bufobj->elem_type) {
 	case DUK_HBUFFEROBJECT_ELEM_UINT8:
@@ -478,7 +478,7 @@ DUK_INTERNAL void duk_hbufferobject_validated_write(duk_context *ctx, duk_hbuffe
 		DUK_UNREACHABLE();
 	}
 
-	DUK_MEMCPY((void *) p, (const void *) du.uc, elem_size);
+	DUK_MEMCPY((void *) p, (const void *) du.uc, (size_t) elem_size);
 }
 
 /*
@@ -669,8 +669,13 @@ DUK_INTERNAL duk_ret_t duk_bi_nodejs_buffer_constructor(duk_context *ctx) {
 
 #if defined(DUK_USE_BUFFEROBJECT_SUPPORT)
 DUK_INTERNAL duk_ret_t duk_bi_arraybuffer_constructor(duk_context *ctx) {
+	duk_hthread *thr;
 	duk_hbufferobject *h_bufobj;
 	duk_hbuffer *h_val;
+
+	DUK_ASSERT_CTX_VALID(ctx);
+	thr = (duk_hthread *) ctx;
+	DUK_UNREF(thr);
 
 	/* XXX: function flag to make this automatic? */
 	if (!duk_is_constructor_call(ctx)) {
@@ -695,6 +700,14 @@ DUK_INTERNAL duk_ret_t duk_bi_arraybuffer_constructor(duk_context *ctx) {
 		(void) duk_push_fixed_buffer(ctx, (duk_size_t) len);
 		h_val = (duk_hbuffer *) duk_get_hbuffer(ctx, -1);
 		DUK_ASSERT(h_val != NULL);
+
+#if !defined(DUK_USE_ZERO_BUFFER_DATA)
+		/* Khronos/ES6 requires zeroing even when DUK_USE_ZERO_BUFFER_DATA
+		 * is not set.
+		 */
+		DUK_ASSERT(!DUK_HBUFFER_HAS_DYNAMIC((duk_hbuffer *) h_val));
+		DUK_MEMZERO((void *) DUK_HBUFFER_FIXED_GET_DATA_PTR(thr->heap, h_val), (duk_size_t) len);
+#endif
 	}
 
 	h_bufobj = duk_push_bufferobject_raw(ctx,
@@ -853,8 +866,8 @@ DUK_INTERNAL duk_ret_t duk_bi_typedarray_constructor(duk_context *ctx) {
 			DUK_HBUFFER_INCREF(thr, h_val);
 			h_bufobj->offset = h_bufarg->offset + byte_offset;
 			h_bufobj->length = byte_length;
-			h_bufobj->shift = shift;
-			h_bufobj->elem_type = elem_type;
+			h_bufobj->shift = (duk_uint8_t) shift;
+			h_bufobj->elem_type = (duk_uint8_t) elem_type;
 			h_bufobj->is_view = 1;
 			DUK_ASSERT_HBUFFEROBJECT_VALID(h_bufobj);
 
@@ -906,6 +919,14 @@ DUK_INTERNAL duk_ret_t duk_bi_typedarray_constructor(duk_context *ctx) {
 			elem_length_signed = (duk_int_t) duk_get_length(ctx, 0);
 			copy_mode = 2;
 		}
+	} else if (DUK_TVAL_IS_BUFFER(tv)) {
+		/* Accept plain buffer values like array initializers
+		 * (new in Duktape 1.4.0).
+		 */
+		duk_hbuffer *h_srcbuf;
+		h_srcbuf = DUK_TVAL_GET_BUFFER(tv);
+		elem_length_signed = (duk_int_t) DUK_HBUFFER_GET_SIZE(h_srcbuf);
+		copy_mode = 2;  /* XXX: could add fast path for u8 compatible views */
 	} else {
 		/* Non-object argument is simply int coerced, matches
 		 * V8 behavior (except for "null", which we coerce to
@@ -949,8 +970,8 @@ DUK_INTERNAL duk_ret_t duk_bi_typedarray_constructor(duk_context *ctx) {
 	DUK_HBUFFER_INCREF(thr, h_val);
 	DUK_ASSERT(h_bufobj->offset == 0);
 	h_bufobj->length = byte_length;
-	h_bufobj->shift = shift;
-	h_bufobj->elem_type = elem_type;
+	h_bufobj->shift = (duk_uint8_t) shift;
+	h_bufobj->elem_type = (duk_uint8_t) elem_type;
 	h_bufobj->is_view = 1;
 	DUK_ASSERT_HBUFFEROBJECT_VALID(h_bufobj);
 
@@ -1052,6 +1073,13 @@ DUK_INTERNAL duk_ret_t duk_bi_typedarray_constructor(duk_context *ctx) {
 		 * ambiguity with Float32/Float64 because zero bytes also
 		 * represent 0.0.
 		 */
+#if !defined(DUK_USE_ZERO_BUFFER_DATA)
+		/* Khronos/ES6 requires zeroing even when DUK_USE_ZERO_BUFFER_DATA
+		 * is not set.
+		 */
+		DUK_ASSERT(!DUK_HBUFFER_HAS_DYNAMIC((duk_hbuffer *) h_val));
+		DUK_MEMZERO((void *) DUK_HBUFFER_FIXED_GET_DATA_PTR(thr->heap, h_val), (duk_size_t) byte_length);
+#endif
 
 		DUK_DDD(DUK_DDDPRINT("using no copy"));
 		break;
@@ -1194,7 +1222,7 @@ DUK_INTERNAL duk_ret_t duk_bi_nodejs_buffer_tostring(duk_context *ctx) {
 	if (DUK_HBUFFEROBJECT_VALID_BYTEOFFSET_EXCL(h_this, start_offset + slice_length)) {
 		DUK_MEMCPY((void *) buf_slice,
 		           (const void *) (DUK_HBUFFEROBJECT_GET_SLICE_BASE(thr->heap, h_this) + start_offset),
-		           slice_length);
+		           (size_t) slice_length);
 	} else {
 		/* not covered, return all zeroes */
 		;
