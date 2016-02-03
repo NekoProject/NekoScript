@@ -34,6 +34,8 @@ public:
 	duk_ret_t Show();
 	duk_ret_t Navigate();
 	duk_ret_t PreventClose();
+	duk_ret_t EnableButton();
+	duk_ret_t EnableRadioButton();
 
 	static NKWinTaskDialog* tryConstruct(duk_context *ctx, void *ptr);
 	static void setupPrototype(duk_context *ctx);

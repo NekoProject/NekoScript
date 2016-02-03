@@ -3,6 +3,16 @@
 #include "JSEventEmitter.h"
 #include "NKWinTaskDialog.h"
 
+// hidden icons in TaskDialog
+// http://sharpmix.net/blog/2009/06/28/taskdialog-hidden-icons/
+// https://web.archive.org/web/20110429070133/http://sharpmix.net/blog/2009/06/28/taskdialog-hidden-icons/
+
+#define TD_SECURITY_SHIELD_BLUE_ICON MAKEINTRESOURCEW(-5)
+#define TD_SECURITY_WARNING_ICON     MAKEINTRESOURCEW(-6)
+#define TD_SECURITY_ERROR_ICON       MAKEINTRESOURCEW(-7)
+#define TD_SECURITY_SUCCESS_ICON     MAKEINTRESOURCEW(-8)
+#define TD_SECURITY_SHIELD_GRAY_ICON MAKEINTRESOURCEW(-9)
+
 NKWinTaskDialog::NKWinTaskDialog(duk_context *ctx, void *ptr) : JSClass(ctx, ptr) {
 	_preventClose = false;
 }
@@ -27,6 +37,11 @@ static inline PCWSTR ParseIcon(const std::string &icon) {
 	if (icon == "err") return TD_ERROR_ICON;
 	if (icon == "error") return TD_ERROR_ICON;
 	if (icon == "shield") return TD_SHIELD_ICON;
+	if (icon == "securityShieldBlue") return TD_SECURITY_SHIELD_BLUE_ICON;
+	if (icon == "securityWarning") return TD_SECURITY_WARNING_ICON;
+	if (icon == "securityError") return TD_SECURITY_ERROR_ICON;
+	if (icon == "securitySuccess") return TD_SECURITY_SUCCESS_ICON;
+	if (icon == "securityShieldGray") return TD_SECURITY_SHIELD_GRAY_ICON;
 	return 0;
 }
 
@@ -48,6 +63,16 @@ static inline std::string ParseCommonButtonID(int button) {
 	if (button == IDRETRY) return "retry";
 	if (button == IDCLOSE) return "close";
 	return "";
+}
+
+static inline int ParseCommonButtonIDString(std::string button) {
+	if (button == "ok") return IDOK;
+	if (button == "yes") return IDYES;
+	if (button == "no") return IDNO;
+	if (button == "cancel") return IDCANCEL;
+	if (button == "retry") return IDRETRY;
+	if (button == "close") return IDCLOSE;
+	return 0;
 }
 
 void NKWinTaskDialog::CreateConfig() {
@@ -207,6 +232,32 @@ duk_ret_t NKWinTaskDialog::PreventClose()
 	return 0;
 }
 
+duk_ret_t NKWinTaskDialog::EnableButton() {
+	int button = 0;
+	bool enabled = duk_require_boolean(ctx, 1);
+
+	if (duk_is_string(ctx, 0)) {
+		button = ParseCommonButtonIDString(duk_get_string(ctx, 0));
+	} else {
+		button = 1000 + duk_require_int(ctx, 0);
+	}
+
+	LRESULT result = SendMessage(_hwnd, TDM_ENABLE_BUTTON, button, (LPARAM)enabled);
+	if (result != S_OK) JSThrowWin32Error(ctx, result, "SendMessage TDM_ENABLE_BUTTON");
+
+	return 0;
+}
+
+duk_ret_t NKWinTaskDialog::EnableRadioButton() {
+	int button = 0;
+	button = 2000 + duk_require_int(ctx, 0);
+
+	LRESULT result = SendMessage(_hwnd, TDM_ENABLE_RADIO_BUTTON, button, (LPARAM)duk_require_boolean(ctx, 1));
+	if (result != S_OK) JSThrowWin32Error(ctx, result, "SendMessage TDM_ENABLE_RADIO_BUTTON");
+
+	return 0;
+}
+
 void NKWinTaskDialog::setupPrototype(duk_context *ctx) {
 	JSEventEmitter::putOnStack(ctx);
 	duk_new(ctx, 0);
@@ -214,6 +265,8 @@ void NKWinTaskDialog::setupPrototype(duk_context *ctx) {
 	registerMethod<&Show>(ctx, "show", 1);
 	registerMethod<&Navigate>(ctx, "navigate", 1);
 	registerMethod<&PreventClose>(ctx, "preventClose", 0);
+	registerMethod<&EnableButton>(ctx, "enableButton", 2);
+	registerMethod<&EnableRadioButton>(ctx, "enableRadioButton", 2);
 
 	duk_put_prop_string(ctx, -2, "prototype");
 }
