@@ -84,6 +84,9 @@
     <ClInclude Include="NKWinVersionInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NekoContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -311,9 +314,6 @@
     <ClCompile Include="vendors\duktape\duk_heap_stringtable.cpp">
       <Filter>Vendors\Duktape</Filter>
     </ClCompile>
-    <ClCompile Include="vendors\duktape\duk_hobject_alloc.cpp">
-      <Filter>Vendors\Duktape</Filter>
-    </ClCompile>
     <ClCompile Include="vendors\duktape\duk_hobject_class.cpp">
       <Filter>Vendors\Duktape</Filter>
     </ClCompile>
@@ -508,6 +508,12 @@
     </ClCompile>
     <ClCompile Include="vendors\libuv\src\win\winsock.c">
       <Filter>Vendors\libuv\win</Filter>
+    </ClCompile>
+    <ClCompile Include="NekoContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\duktape\duk_hobject_alloc.neko.cpp">
+      <Filter>Vendors\Duktape</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

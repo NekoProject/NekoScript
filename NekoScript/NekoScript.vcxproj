@@ -194,6 +194,7 @@
     <ClInclude Include="JSEngineExtra.h" />
     <ClInclude Include="JSEventEmitter.h" />
     <ClInclude Include="JSProcess.h" />
+    <ClInclude Include="NekoContext.h" />
     <ClInclude Include="NekoScript.h" />
     <ClInclude Include="JSFileSystem.h" />
     <ClInclude Include="NKWinAPI.h" />
@@ -212,6 +213,7 @@
     <ClCompile Include="JSEngineExtra.cpp" />
     <ClCompile Include="JSEventEmitter.cpp" />
     <ClCompile Include="JSProcess.cpp" />
+    <ClCompile Include="NekoContext.cpp" />
     <ClCompile Include="NekoScript.cpp" />
     <ClCompile Include="JSFileSystem.cpp" />
     <ClCompile Include="NKWinAPI.cpp" />
@@ -282,7 +284,6 @@
     <ClCompile Include="vendors\duktape\duk_heap_refcount.cpp" />
     <ClCompile Include="vendors\duktape\duk_heap_stringcache.cpp" />
     <ClCompile Include="vendors\duktape\duk_heap_stringtable.cpp" />
-    <ClCompile Include="vendors\duktape\duk_hobject_alloc.cpp" />
     <ClCompile Include="vendors\duktape\duk_hobject_class.cpp" />
     <ClCompile Include="vendors\duktape\duk_hobject_enum.cpp" />
     <ClCompile Include="vendors\duktape\duk_hobject_finalizer.cpp" />
@@ -316,6 +317,7 @@
     <ClCompile Include="vendors\duktape\duk_util_hashprime.cpp" />
     <ClCompile Include="vendors\duktape\duk_util_misc.cpp" />
     <ClCompile Include="vendors\duktape\duk_util_tinyrandom.cpp" />
+    <ClCompile Include="vendors\duktape\duk_hobject_alloc.neko.cpp" />
     <ClCompile Include="vendors\libuv\src\fs-poll.c" />
     <ClCompile Include="vendors\libuv\src\inet.c" />
     <ClCompile Include="vendors\libuv\src\threadpool.c" />

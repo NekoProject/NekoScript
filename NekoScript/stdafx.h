@@ -8,6 +8,7 @@
 #include "targetver.h"
 
 // Windows Header Files:
+#include <winsock2.h>
 #include <windows.h>
 #include <Commctrl.h>
 

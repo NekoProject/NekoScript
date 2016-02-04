@@ -1,6 +1,8 @@
 #pragma once
 #include "stdafx.h"
 #include <duktape\duktape.h>
+#include <uv.h>
+#include "NekoContext.h"
 
 std::wstring Utf8ToUtf16(const std::string &s);
 std::string Utf16ToUtf8(const std::wstring &s);
